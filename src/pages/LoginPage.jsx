@@ -45,13 +45,15 @@ const LoginPage = () => {
         email: fakeEmail,
         password: phone + '_gitty_2024',
       })
-      
+
       if (authError) {
+        console.error('Auth error:', authError)
         if (authError.message.includes('Invalid login')) {
-          setError('가입되지 않은 번호입니다. 먼저 가입해주세요.')
+          setError('가입되지 않은 번호이거나 비밀번호가 틀렸습니다.')
         } else {
-          throw authError
+          setError('로그인 중 오류가 발생했습니다: ' + authError.message)
         }
+        setLoading(false)
         return
       }
       
