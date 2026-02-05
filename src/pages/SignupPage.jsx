@@ -7,8 +7,9 @@ const STEPS = {
   VERIFY: 1,
   BASIC_INFO: 2,
   WORK_INFO: 3,
-  PROFILE: 4,
-  AGREEMENT: 5,
+  APPEARANCE: 4, // NEW!
+  PROFILE: 5,
+  AGREEMENT: 6,
 }
 
 const WORK_TYPES = [
@@ -17,6 +18,13 @@ const WORK_TYPES = [
   { value: 'startup', label: '스타트업', icon: '🚀' },
   { value: 'small', label: '중소기업', icon: '🏠' },
   { value: 'entrepreneur', label: '창업/자영업', icon: '💼' },
+]
+
+const BODY_TYPES = [
+  { value: 'slim', label: '마름', icon: '🌿' },
+  { value: 'average', label: '보통', icon: '✨' },
+  { value: 'chubby', label: '통통', icon: '🌟' },
+  { value: 'none', label: '선택안함', icon: '➖' },
 ]
 
 const SignupPage = () => {
@@ -35,6 +43,13 @@ const SignupPage = () => {
     region: '',
     workLocation: '',
     workType: '',
+    // NEW: 외적 정보
+    height: '',
+    bodyType: '',
+    faceFeatures: '',
+    fashionStyle: '',
+    // 프로필
+    interests: '',
     bio: '',
     kakaoId: '',
   })
@@ -46,7 +61,7 @@ const SignupPage = () => {
     marketing: false,
   })
 
-  const progress = ((step + 1) / 6) * 100
+  const progress = ((step + 1) / 7) * 100
 
   const handlePhoneSubmit = async (e) => {
     e.preventDefault()
@@ -99,6 +114,15 @@ const SignupPage = () => {
       return
     }
     
+    setStep(STEPS.APPEARANCE)
+  }
+
+  // NEW: 외적 정보 제출
+  const handleAppearanceSubmit = (e) => {
+    e.preventDefault()
+    setError('')
+    
+    // 외적 정보는 선택사항이므로 바로 다음으로
     setStep(STEPS.PROFILE)
   }
 
@@ -164,6 +188,13 @@ const SignupPage = () => {
           region: formData.region,
           work_location: formData.workLocation,
           work_type: formData.workType,
+          // NEW: 외적 정보
+          height: formData.height ? parseInt(formData.height) : null,
+          body_type: formData.bodyType || null,
+          face_features: formData.faceFeatures || null,
+          fashion_style: formData.fashionStyle || null,
+          // 프로필
+          interests: formData.interests || null,
           bio: formData.bio,
           kakao_id: formData.kakaoId,
           marketing_agreed: agreements.marketing,
@@ -225,7 +256,7 @@ const SignupPage = () => {
                 휴대폰 번호를 입력해주세요
               </h1>
               <p className="text-surface-500">
-                본인 인증을 위해 사용됩니다
+                본인 확인을 위해 필요해요
               </p>
             </div>
 
@@ -299,7 +330,7 @@ const SignupPage = () => {
               disabled={verifyCode.length < 4}
               className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
-              확인
+              다음으로
             </button>
           </form>
         )}
@@ -312,7 +343,7 @@ const SignupPage = () => {
                 기본 정보를 알려주세요
               </h1>
               <p className="text-surface-500">
-                매칭에 사용되는 정보입니다
+                매칭을 위해 필요한 정보예요
               </p>
             </div>
 
@@ -325,7 +356,7 @@ const SignupPage = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="홍길동"
+                  placeholder="본명을 입력해주세요"
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -335,23 +366,30 @@ const SignupPage = () => {
                   성별
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { value: 'male', label: '남성' },
-                    { value: 'female', label: '여성' },
-                  ].map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, gender: option.value })}
-                      className={`py-4 px-6 rounded-xl border-2 font-medium transition-all ${
-                        formData.gender === option.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, gender: 'male' })}
+                    className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
+                      formData.gender === 'male'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                    }`}
+                  >
+                    <span className="text-xl mb-1 block">👨</span>
+                    <span className="text-sm">남성</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, gender: 'female' })}
+                    className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
+                      formData.gender === 'female'
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                    }`}
+                  >
+                    <span className="text-xl mb-1 block">👩</span>
+                    <span className="text-sm">여성</span>
+                  </button>
                 </div>
               </div>
 
@@ -359,16 +397,15 @@ const SignupPage = () => {
                 <label className="block text-sm font-medium text-surface-700 mb-2">
                   출생연도
                 </label>
-                <select
+                <input
+                  type="number"
                   value={formData.birthYear}
                   onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all appearance-none"
-                >
-                  <option value="">선택해주세요</option>
-                  {Array.from({ length: 30 }, (_, i) => 2006 - i).map((year) => (
-                    <option key={year} value={year}>{year}년</option>
-                  ))}
-                </select>
+                  placeholder="1995"
+                  min="1950"
+                  max={new Date().getFullYear() - 18}
+                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                />
               </div>
             </div>
 
@@ -463,19 +500,133 @@ const SignupPage = () => {
           </form>
         )}
 
-        {/* Step 5: Profile (자기소개 & 카카오톡) */}
-        {step === STEPS.PROFILE && (
-          <form onSubmit={handleProfileSubmit} className="space-y-6">
+        {/* Step 5: Appearance (NEW!) */}
+        {step === STEPS.APPEARANCE && (
+          <form onSubmit={handleAppearanceSubmit} className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-surface-900 mb-2">
-                나를 소개해주세요
+                외적 정보를 알려주세요
               </h1>
               <p className="text-surface-500">
-                매칭된 상대에게 보여지는 정보예요
+                선택사항이지만 매칭에 도움이 돼요
               </p>
             </div>
 
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-2">
+                  키 (cm)
+                </label>
+                <input
+                  type="number"
+                  value={formData.height}
+                  onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                  placeholder="170"
+                  min="140"
+                  max="220"
+                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-2">
+                  체형
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  {BODY_TYPES.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, bodyType: type.value })}
+                      className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
+                        formData.bodyType === type.value
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                      }`}
+                    >
+                      <span className="text-xl mb-1 block">{type.icon}</span>
+                      <span className="text-sm">{type.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-2">
+                  얼굴 특징
+                </label>
+                <input
+                  type="text"
+                  value={formData.faceFeatures}
+                  onChange={(e) => setFormData({ ...formData, faceFeatures: e.target.value })}
+                  placeholder="예: 쌍거풀 있음, 동그란 얼굴"
+                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  maxLength={50}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-2">
+                  패션 스타일
+                </label>
+                <input
+                  type="text"
+                  value={formData.fashionStyle}
+                  onChange={(e) => setFormData({ ...formData, fashionStyle: e.target.value })}
+                  placeholder="예: 캐주얼, 미니멀, 스트릿"
+                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  maxLength={50}
+                />
+              </div>
+            </div>
+
+            {error && (
+              <p className="text-red-500 text-sm">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300"
+            >
+              다음으로
+            </button>
+          </form>
+        )}
+
+        {/* Step 6: Profile (자기소개 & 카카오톡) - IMPROVED! */}
+        {step === STEPS.PROFILE && (
+          <form onSubmit={handleProfileSubmit} className="space-y-6">
+            {/* NEW: 거의 완료 메시지 */}
+            <div className="bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200 rounded-2xl p-6 text-center">
+              <div className="text-4xl mb-2">✨</div>
+              <h2 className="text-xl font-bold text-surface-900 mb-1">
+                회원가입이 거의 다 됐어요!
+              </h2>
+              <p className="text-surface-600 text-sm">
+                마지막으로 자신을 소개해주세요
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* NEW: 관심사 */}
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-2">
+                  관심사
+                </label>
+                <p className="text-xs text-surface-500 mb-2">
+                  예: 운동, 영화, 독서, 맛집탐방 (쉼표로 구분)
+                </p>
+                <input
+                  type="text"
+                  value={formData.interests}
+                  onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
+                  placeholder="운동, 영화, 요리"
+                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  maxLength={100}
+                />
+              </div>
+
+              {/* IMPROVED: 자기소개 with 이상형 가이드 */}
               <div>
                 <label className="block text-sm font-medium text-surface-700 mb-2">
                   자기소개
@@ -483,13 +634,16 @@ const SignupPage = () => {
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="취미, 관심사, 이상형 등 자유롭게 작성해주세요"
-                  rows={4}
-                  maxLength={200}
+                  placeholder="자기소개를 작성해주세요.
+
+💡 이상형도 간단히 적어주시면 매칭에 도움이 됩니다!
+예: 활발하고 유머러스한 분, 독서 좋아하시는 분 등"
+                  rows={6}
+                  maxLength={300}
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
                 />
                 <p className="text-right text-surface-400 text-xs mt-1">
-                  {formData.bio.length}/200
+                  {formData.bio.length}/300
                 </p>
               </div>
 
@@ -524,7 +678,7 @@ const SignupPage = () => {
           </form>
         )}
 
-        {/* Step 6: Agreement */}
+        {/* Step 7: Agreement */}
         {step === STEPS.AGREEMENT && (
           <div className="space-y-6">
             <div>
