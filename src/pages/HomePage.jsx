@@ -175,17 +175,17 @@ const HomePage = () => {
   // 매칭 상태에 따른 UI 렌더링
   const renderMatchStatus = () => {
     if (!currentMatch) {
-      // 매칭 없음
+      // 매칭 없음 - 내일 공개 예정
       return (
         <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 p-8 text-center">
           <div className="w-20 h-20 mx-auto mb-4 bg-surface-100 rounded-full flex items-center justify-center">
             <span className="text-4xl">💝</span>
           </div>
           <h2 className="text-xl font-bold text-surface-900 mb-2">
-            상대방을 찾고 있어요
+            매칭 준비 중이에요
           </h2>
           <p className="text-surface-500 text-sm">
-            새로운 인연이 곧 찾아올 거예요!
+            내일 오후 1시에 매칭 상대가 공개돼요!
             <br />
             조금만 기다려주세요 ✨
           </p>
@@ -250,7 +250,7 @@ const HomePage = () => {
       )
     }
 
-    // 거절됨 (결과 발표 후)
+// 거절됨 (결과 발표 후)
     if (status === 'rejected') {
       return (
         <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 p-8 text-center">
@@ -263,7 +263,26 @@ const HomePage = () => {
           <p className="text-surface-500 text-sm">
             괜찮아요! 더 좋은 인연이 기다리고 있어요
             <br />
-            내일 새로운 분을 소개해드릴게요 💪
+            내일 오후 1시에 새로운 분을 소개해드릴게요 💪
+          </p>
+        </div>
+      )
+    }
+
+    // 매칭 상대 없음 (성비 문제 등)
+    if (status === 'no_match') {
+      return (
+        <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-surface-100 rounded-full flex items-center justify-center">
+            <span className="text-4xl">😢</span>
+          </div>
+          <h2 className="text-xl font-bold text-surface-900 mb-2">
+            오늘은 매칭 상대를 못 찾았어요
+          </h2>
+          <p className="text-surface-500 text-sm">
+            자기소개를 더 자세히 쓰면 매칭 확률이 높아져요!
+            <br />
+            내일 오후 1시에 다시 매칭해드릴게요 💪
           </p>
         </div>
       )
