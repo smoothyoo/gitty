@@ -35,12 +35,15 @@ const HomePage = () => {
   // 현재 진행 중인 매칭 가져오기
   const fetchCurrentMatch = async () => {
     try {
-      // 가장 최근 매칭 중 waiting 또는 matched 상태인 것
+      // 오늘 날짜
+      const today = new Date().toISOString().split('T')[0]
+      
+      // 가장 최근 매칭 가져오기 (오늘 이후의 매칭)
       const { data: matches, error } = await supabase
         .from('matches')
         .select('*')
         .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
-        .in('status', ['waiting', 'matched'])
+        .gte('cycle_start', today)
         .order('cycle_start', { ascending: false })
         .limit(1)
         .single()
@@ -255,12 +258,12 @@ const HomePage = () => {
             <span className="text-4xl">😢</span>
           </div>
           <h2 className="text-xl font-bold text-surface-900 mb-2">
-            이번 매칭은 성사되지 않았어요
+            상대방이 거절했어요
           </h2>
           <p className="text-surface-500 text-sm">
-            괜찮아요! 새로운 인연이 곧 찾아올 거예요
+            괜찮아요! 더 좋은 인연이 기다리고 있어요
             <br />
-            다음 매칭을 기다려주세요 💪
+            내일 새로운 분을 소개해드릴게요 💪
           </p>
         </div>
       )
