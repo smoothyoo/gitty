@@ -11,6 +11,36 @@ const WORK_TYPE_LABELS = {
   entrepreneur: '창업/자영업',
 }
 
+const SMOKING_LABELS = {
+  no: '비흡연',
+  sometimes: '가끔',
+  yes: '흡연',
+}
+
+const DRINKING_LABELS = {
+  no: '안 마셔요',
+  sometimes: '가끔 마셔요',
+  often: '자주 마셔요',
+}
+
+const INTEREST_LABELS = {
+  exercise: '🏃 운동/헬스',
+  movie: '🎬 영화/넷플릭스',
+  reading: '📚 독서',
+  food: '🍽️ 맛집탐방',
+  travel: '✈️ 여행',
+  music: '🎵 음악/공연',
+  cafe: '☕ 카페',
+  game: '🎮 게임',
+  pet: '🐶 반려동물',
+  photo: '📷 사진',
+  cooking: '🍳 요리',
+  drink: '🍷 술/와인',
+  sports: '⚽ 스포츠관람',
+  culture: '🎨 전시/문화',
+  selfdev: '💪 자기계발',
+}
+
 const HomePage = () => {
   const navigate = useNavigate()
   const { user, profile, loading: authLoading, signOut } = useAuth()
@@ -31,6 +61,12 @@ const HomePage = () => {
       fetchMatchHistory()
     }
   }, [user, authLoading])
+
+  // 관심사 문자열을 배열로 변환
+  const getInterests = (interestsStr) => {
+    if (!interestsStr) return []
+    return interestsStr.split(',').filter(i => i)
+  }
 
   // 현재 진행 중인 매칭 가져오기
   const fetchCurrentMatch = async () => {
@@ -238,6 +274,39 @@ const HomePage = () => {
               </div>
             </div>
 
+            {/* NEW: MBTI, 흡연, 음주 */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="p-3 bg-surface-50 rounded-xl text-center">
+                <p className="text-surface-500 text-xs mb-1">MBTI</p>
+                <p className="text-surface-900 font-medium">{matchedUser?.mbti || '-'}</p>
+              </div>
+              <div className="p-3 bg-surface-50 rounded-xl text-center">
+                <p className="text-surface-500 text-xs mb-1">흡연</p>
+                <p className="text-surface-900 font-medium">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
+              </div>
+              <div className="p-3 bg-surface-50 rounded-xl text-center">
+                <p className="text-surface-500 text-xs mb-1">음주</p>
+                <p className="text-surface-900 font-medium">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
+              </div>
+            </div>
+
+            {/* NEW: 관심사 */}
+            {matchedUser?.interests && (
+              <div className="p-4 bg-surface-50 rounded-xl mb-4">
+                <p className="text-surface-500 text-xs mb-2">관심사</p>
+                <div className="flex flex-wrap gap-2">
+                  {getInterests(matchedUser.interests).map((interest) => (
+                    <span 
+                      key={interest}
+                      className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs"
+                    >
+                      {INTEREST_LABELS[interest] || interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 자기소개 */}
             {matchedUser?.bio && (
               <div className="p-4 bg-surface-50 rounded-xl">
@@ -250,7 +319,7 @@ const HomePage = () => {
       )
     }
 
-// 거절됨 (결과 발표 후)
+    // 거절됨 (결과 발표 후)
     if (status === 'rejected') {
       return (
         <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 p-8 text-center">
@@ -349,6 +418,39 @@ const HomePage = () => {
                 <p className="text-surface-900 font-medium">{WORK_TYPE_LABELS[matchedUser?.work_type] || '비공개'}</p>
               </div>
             </div>
+
+            {/* NEW: MBTI, 흡연, 음주 */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="p-3 bg-surface-50 rounded-xl text-center">
+                <p className="text-surface-500 text-xs mb-1">MBTI</p>
+                <p className="text-surface-900 font-medium text-sm">{matchedUser?.mbti || '-'}</p>
+              </div>
+              <div className="p-3 bg-surface-50 rounded-xl text-center">
+                <p className="text-surface-500 text-xs mb-1">흡연</p>
+                <p className="text-surface-900 font-medium text-sm">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
+              </div>
+              <div className="p-3 bg-surface-50 rounded-xl text-center">
+                <p className="text-surface-500 text-xs mb-1">음주</p>
+                <p className="text-surface-900 font-medium text-sm">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
+              </div>
+            </div>
+
+            {/* NEW: 관심사 */}
+            {matchedUser?.interests && (
+              <div className="p-4 bg-surface-50 rounded-xl">
+                <p className="text-surface-500 text-xs mb-2">관심사</p>
+                <div className="flex flex-wrap gap-2">
+                  {getInterests(matchedUser.interests).map((interest) => (
+                    <span 
+                      key={interest}
+                      className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs"
+                    >
+                      {INTEREST_LABELS[interest] || interest}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* 자기소개 */}
             {matchedUser?.bio && (
