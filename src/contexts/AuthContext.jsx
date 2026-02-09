@@ -69,12 +69,12 @@ export const AuthProvider = ({ children }) => {
   }
 
   const value = {
-    user,
-    profile,
-    loading,
-    signOut,
-    refreshProfile: () => user && fetchProfile(user.id)
-  }
+  user,
+  profile,
+  loading,
+  signOut,
+  refreshProfile: (userId) => fetchProfile(userId || user?.id)
+}
 
   return (
     <AuthContext.Provider value={value}>
