@@ -28,18 +28,21 @@ const LoginPage = () => {
   }
 
   const handleVerifySubmit = async (e) => {
-    e.preventDefault()
-    setError('')
+  e.preventDefault()
+  setError('')
+  
+  if (verifyCode !== '1234') {
+    setError('인증번호가 일치하지 않습니다')
+    return
+  }
+  
+  setLoading(true)
+  
+  try {
+    // 기존 세션 정리 (캐시 문제 방지)
+    await supabase.auth.signOut()
     
-    if (verifyCode !== '1234') {
-      setError('인증번호가 일치하지 않습니다')
-      return
-    }
-    
-    setLoading(true)
-    
-    try {
-      const fakeEmail = `${phone}@gitty.app`
+    const fakeEmail = `${phone}@gitty.app`
       
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: fakeEmail,
