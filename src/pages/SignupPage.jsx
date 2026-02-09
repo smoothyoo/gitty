@@ -264,7 +264,7 @@ const SignupPage = () => {
       
       if (profileError) throw profileError
       
-      await refreshProfile()  // 이 줄 추가!
+      await refreshProfile(authData.user.id)
       navigate('/home')
     } catch (err) {
       console.error('Signup error:', err)
