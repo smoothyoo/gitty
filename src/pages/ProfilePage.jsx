@@ -9,6 +9,36 @@ const WORK_TYPE_LABELS = {
   entrepreneur: '창업/자영업',
 }
 
+const SMOKING_LABELS = {
+  no: '비흡연',
+  sometimes: '가끔',
+  yes: '흡연',
+}
+
+const DRINKING_LABELS = {
+  no: '안 마셔요',
+  sometimes: '가끔 마셔요',
+  often: '자주 마셔요',
+}
+
+const INTEREST_LABELS = {
+  exercise: '🏃 운동/헬스',
+  movie: '🎬 영화/넷플릭스',
+  reading: '📚 독서',
+  food: '🍽️ 맛집탐방',
+  travel: '✈️ 여행',
+  music: '🎵 음악/공연',
+  cafe: '☕ 카페',
+  game: '🎮 게임',
+  pet: '🐶 반려동물',
+  photo: '📷 사진',
+  cooking: '🍳 요리',
+  drink: '🍷 술/와인',
+  sports: '⚽ 스포츠관람',
+  culture: '🎨 전시/문화',
+  selfdev: '💪 자기계발',
+}
+
 const ProfilePage = () => {
   const navigate = useNavigate()
   const { profile, signOut } = useAuth()
@@ -16,6 +46,12 @@ const ProfilePage = () => {
   const handleSignOut = async () => {
     await signOut()
     navigate('/')
+  }
+
+  // 관심사 문자열을 배열로 변환
+  const getInterests = () => {
+    if (!profile?.interests) return []
+    return profile.interests.split(',').filter(i => i)
   }
 
   return (
@@ -63,9 +99,46 @@ const ProfilePage = () => {
               <span className="text-surface-500">직장 위치</span>
               <span className="text-surface-900 font-medium">{profile?.work_location || '-'}</span>
             </div>
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-3 border-b border-surface-100">
               <span className="text-surface-500">직장 유형</span>
               <span className="text-surface-900 font-medium">{WORK_TYPE_LABELS[profile?.work_type] || '-'}</span>
+            </div>
+            
+            {/* NEW: MBTI */}
+            <div className="flex items-center justify-between py-3 border-b border-surface-100">
+              <span className="text-surface-500">MBTI</span>
+              <span className="text-surface-900 font-medium">{profile?.mbti || '-'}</span>
+            </div>
+            
+            {/* NEW: 흡연 */}
+            <div className="flex items-center justify-between py-3 border-b border-surface-100">
+              <span className="text-surface-500">흡연</span>
+              <span className="text-surface-900 font-medium">{SMOKING_LABELS[profile?.smoking] || '-'}</span>
+            </div>
+            
+            {/* NEW: 음주 */}
+            <div className="flex items-center justify-between py-3 border-b border-surface-100">
+              <span className="text-surface-500">음주</span>
+              <span className="text-surface-900 font-medium">{DRINKING_LABELS[profile?.drinking] || '-'}</span>
+            </div>
+
+            {/* NEW: 관심사 */}
+            <div className="py-3">
+              <span className="text-surface-500 block mb-3">관심사</span>
+              <div className="flex flex-wrap gap-2">
+                {getInterests().length > 0 ? (
+                  getInterests().map((interest) => (
+                    <span 
+                      key={interest}
+                      className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm"
+                    >
+                      {INTEREST_LABELS[interest] || interest}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-surface-400">-</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
