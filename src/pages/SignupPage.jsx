@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 const STEPS = {
   PHONE: 0,
@@ -60,6 +61,7 @@ const INTEREST_OPTIONS = [
 
 const SignupPage = () => {
   const navigate = useNavigate()
+  const { refreshProfile } = useAuth()  // 이 줄 추가!
   const [step, setStep] = useState(STEPS.PHONE)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -262,6 +264,7 @@ const SignupPage = () => {
       
       if (profileError) throw profileError
       
+      await refreshProfile()  // 이 줄 추가!
       navigate('/home')
     } catch (err) {
       console.error('Signup error:', err)
