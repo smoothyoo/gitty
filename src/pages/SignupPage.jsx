@@ -7,9 +7,10 @@ const STEPS = {
   VERIFY: 1,
   BASIC_INFO: 2,
   WORK_INFO: 3,
-  APPEARANCE: 4, // NEW!
-  PROFILE: 5,
-  AGREEMENT: 6,
+  LIFESTYLE: 4,    // NEW: MBTI, 흡연, 음주
+  INTERESTS: 5,    // NEW: 관심사
+  PROFILE: 6,      // 자기소개 + 카톡
+  AGREEMENT: 7,
 }
 
 const WORK_TYPES = [
@@ -20,11 +21,41 @@ const WORK_TYPES = [
   { value: 'entrepreneur', label: '창업/자영업', icon: '💼' },
 ]
 
-const BODY_TYPES = [
-  { value: 'slim', label: '마름', icon: '🌿' },
-  { value: 'average', label: '보통', icon: '✨' },
-  { value: 'chubby', label: '통통', icon: '🌟' },
-  { value: 'none', label: '선택안함', icon: '➖' },
+const MBTI_TYPES = [
+  'ISTJ', 'ISFJ', 'INFJ', 'INTJ',
+  'ISTP', 'ISFP', 'INFP', 'INTP',
+  'ESTP', 'ESFP', 'ENFP', 'ENTP',
+  'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ',
+]
+
+const SMOKING_OPTIONS = [
+  { value: 'no', label: '비흡연', icon: '🚭' },
+  { value: 'sometimes', label: '가끔', icon: '🚬' },
+  { value: 'yes', label: '흡연', icon: '🚬' },
+]
+
+const DRINKING_OPTIONS = [
+  { value: 'no', label: '안 마셔요', icon: '🚫' },
+  { value: 'sometimes', label: '가끔 마셔요', icon: '🍺' },
+  { value: 'often', label: '자주 마셔요', icon: '🍻' },
+]
+
+const INTEREST_OPTIONS = [
+  { value: 'exercise', label: '운동/헬스', icon: '🏃' },
+  { value: 'movie', label: '영화/넷플릭스', icon: '🎬' },
+  { value: 'reading', label: '독서', icon: '📚' },
+  { value: 'food', label: '맛집탐방', icon: '🍽️' },
+  { value: 'travel', label: '여행', icon: '✈️' },
+  { value: 'music', label: '음악/공연', icon: '🎵' },
+  { value: 'cafe', label: '카페', icon: '☕' },
+  { value: 'game', label: '게임', icon: '🎮' },
+  { value: 'pet', label: '반려동물', icon: '🐶' },
+  { value: 'photo', label: '사진', icon: '📷' },
+  { value: 'cooking', label: '요리', icon: '🍳' },
+  { value: 'drink', label: '술/와인', icon: '🍷' },
+  { value: 'sports', label: '스포츠관람', icon: '⚽' },
+  { value: 'culture', label: '전시/문화', icon: '🎨' },
+  { value: 'selfdev', label: '자기계발', icon: '💪' },
 ]
 
 const SignupPage = () => {
@@ -43,13 +74,13 @@ const SignupPage = () => {
     region: '',
     workLocation: '',
     workType: '',
-    // NEW: 외적 정보
-    height: '',
-    bodyType: '',
-    faceFeatures: '',
-    fashionStyle: '',
+    // 라이프스타일
+    mbti: '',
+    smoking: '',
+    drinking: '',
+    // 관심사 (배열)
+    interests: [],
     // 프로필
-    interests: '',
     bio: '',
     kakaoId: '',
   })
@@ -61,7 +92,7 @@ const SignupPage = () => {
     marketing: false,
   })
 
-  const progress = ((step + 1) / 7) * 100
+  const progress = ((step + 1) / 8) * 100
 
   const handlePhoneSubmit = async (e) => {
     e.preventDefault()
@@ -73,7 +104,6 @@ const SignupPage = () => {
     }
     
     setLoading(true)
-    // MVP: 더미 인증 (실제로는 Supabase Phone Auth 사용)
     setTimeout(() => {
       setLoading(false)
       setStep(STEPS.VERIFY)
@@ -84,7 +114,6 @@ const SignupPage = () => {
     e.preventDefault()
     setError('')
     
-    // MVP: 더미 인증 코드 1234
     if (verifyCode !== '1234') {
       setError('인증번호가 일치하지 않습니다')
       return
@@ -114,21 +143,53 @@ const SignupPage = () => {
       return
     }
     
-    setStep(STEPS.APPEARANCE)
+    setStep(STEPS.LIFESTYLE)
   }
 
-  // NEW: 외적 정보 제출
-  const handleAppearanceSubmit = (e) => {
+  // NEW: 라이프스타일 제출
+  const handleLifestyleSubmit = (e) => {
     e.preventDefault()
     setError('')
     
-    // 외적 정보는 선택사항이므로 바로 다음으로
+    if (!formData.mbti || !formData.smoking || !formData.drinking) {
+      setError('모든 항목을 선택해주세요')
+      return
+    }
+    
+    setStep(STEPS.INTERESTS)
+  }
+
+  // NEW: 관심사 제출
+  const handleInterestsSubmit = (e) => {
+    e.preventDefault()
+    setError('')
+    
+    if (formData.interests.length < 1) {
+      setError('최소 1개 이상 선택해주세요')
+      return
+    }
+    
     setStep(STEPS.PROFILE)
+  }
+
+  // 관심사 토글
+  const toggleInterest = (value) => {
+    const current = formData.interests
+    if (current.includes(value)) {
+      setFormData({ ...formData, interests: current.filter(i => i !== value) })
+    } else if (current.length < 5) {
+      setFormData({ ...formData, interests: [...current, value] })
+    }
   }
 
   const handleProfileSubmit = (e) => {
     e.preventDefault()
     setError('')
+    
+    if (!formData.bio || formData.bio.length < 10) {
+      setError('자기소개를 최소 10글자 이상 입력해주세요')
+      return
+    }
     
     if (!formData.kakaoId) {
       setError('카카오톡 ID는 필수입니다')
@@ -166,12 +227,11 @@ const SignupPage = () => {
     setLoading(true)
     
     try {
-      // Supabase에 유저 생성 (MVP에서는 phone을 이메일처럼 사용)
       const fakeEmail = `${phone}@gitty.app`
       
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: fakeEmail,
-        password: phone + '_gitty_2024', // MVP용 임시 비밀번호
+        password: phone + '_gitty_2024',
       })
       
       if (authError) throw authError
@@ -188,13 +248,13 @@ const SignupPage = () => {
           region: formData.region,
           work_location: formData.workLocation,
           work_type: formData.workType,
-          // NEW: 외적 정보
-          height: formData.height ? parseInt(formData.height) : null,
-          body_type: formData.bodyType || null,
-          face_features: formData.faceFeatures || null,
-          fashion_style: formData.fashionStyle || null,
+          // 라이프스타일
+          mbti: formData.mbti,
+          smoking: formData.smoking,
+          drinking: formData.drinking,
+          // 관심사 (배열을 문자열로)
+          interests: formData.interests.join(','),
           // 프로필
-          interests: formData.interests || null,
           bio: formData.bio,
           kakao_id: formData.kakaoId,
           marketing_agreed: agreements.marketing,
@@ -202,11 +262,14 @@ const SignupPage = () => {
       
       if (profileError) throw profileError
       
-      // 성공 - 메인 페이지로 이동
       navigate('/home')
     } catch (err) {
       console.error('Signup error:', err)
-      setError('가입 중 오류가 발생했습니다. 다시 시도해주세요.')
+      if (err.message?.includes('already registered')) {
+        setError('이미 가입된 전화번호입니다. 로그인해주세요.')
+      } else {
+        setError('가입 중 오류가 발생했습니다. 다시 시도해주세요.')
+      }
     } finally {
       setLoading(false)
     }
@@ -226,12 +289,12 @@ const SignupPage = () => {
       {/* Header */}
       <header className="sticky top-0 bg-surface-50/80 backdrop-blur-lg border-b border-surface-200 z-50">
         <div className="max-w-lg mx-auto px-6 py-4 flex items-center justify-between">
-          <button onClick={goBack} className="p-2 -ml-2 text-surface-600 hover:text-surface-900">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={goBack} className="p-2 -ml-2 hover:bg-surface-100 rounded-lg transition-colors">
+            <svg className="w-6 h-6 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <button onClick={() => navigate('/')} className="p-2 -mr-2 text-surface-600 hover:text-surface-900">
+          <button onClick={() => navigate('/')} className="text-surface-500 hover:text-surface-700">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -253,27 +316,22 @@ const SignupPage = () => {
           <form onSubmit={handlePhoneSubmit} className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-surface-900 mb-2">
-                휴대폰 번호를 입력해주세요
+                전화번호를 입력해주세요
               </h1>
               <p className="text-surface-500">
-                본인 확인을 위해 필요해요
+                본인 인증을 위해 사용됩니다
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">
-                  휴대폰 번호
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
-                  placeholder="01012345678"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  maxLength={11}
-                />
-              </div>
+            <div>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="01012345678"
+                className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                maxLength={11}
+              />
             </div>
 
             {error && (
@@ -298,27 +356,22 @@ const SignupPage = () => {
                 인증번호를 입력해주세요
               </h1>
               <p className="text-surface-500">
-                {phone}로 전송된 4자리 숫자
-              </p>
-              <p className="text-accent-500 text-sm mt-2">
-                테스트용 인증번호: 1234
+                {phone}로 전송된 인증번호 4자리
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">
-                  인증번호
-                </label>
-                <input
-                  type="text"
-                  value={verifyCode}
-                  onChange={(e) => setVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  placeholder="1234"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-center text-2xl tracking-[0.5em] placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  maxLength={4}
-                />
-              </div>
+            <div>
+              <input
+                type="text"
+                value={verifyCode}
+                onChange={(e) => setVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="1234"
+                className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                maxLength={4}
+              />
+              <p className="text-surface-400 text-xs mt-2 text-center">
+                테스트용 인증번호: 1234
+              </p>
             </div>
 
             {error && (
@@ -330,7 +383,7 @@ const SignupPage = () => {
               disabled={verifyCode.length < 4}
               className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
-              다음으로
+              확인
             </button>
           </form>
         )}
@@ -356,7 +409,7 @@ const SignupPage = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="본명을 입력해주세요"
+                  placeholder="실명을 입력해주세요"
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -366,30 +419,24 @@ const SignupPage = () => {
                   성별
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, gender: 'male' })}
-                    className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
-                      formData.gender === 'male'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
-                    }`}
-                  >
-                    <span className="text-xl mb-1 block">👨</span>
-                    <span className="text-sm">남성</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, gender: 'female' })}
-                    className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
-                      formData.gender === 'female'
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
-                    }`}
-                  >
-                    <span className="text-xl mb-1 block">👩</span>
-                    <span className="text-sm">여성</span>
-                  </button>
+                  {[
+                    { value: 'male', label: '남성', icon: '👨' },
+                    { value: 'female', label: '여성', icon: '👩' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, gender: option.value })}
+                      className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
+                        formData.gender === option.value
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                      }`}
+                    >
+                      <span className="text-2xl mb-1 block">{option.icon}</span>
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -402,8 +449,8 @@ const SignupPage = () => {
                   value={formData.birthYear}
                   onChange={(e) => setFormData({ ...formData, birthYear: e.target.value })}
                   placeholder="1995"
-                  min="1950"
-                  max={new Date().getFullYear() - 18}
+                  min="1960"
+                  max="2006"
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -415,8 +462,7 @@ const SignupPage = () => {
 
             <button
               type="submit"
-              disabled={!formData.name || !formData.gender || !formData.birthYear}
-              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300"
             >
               다음으로
             </button>
@@ -444,7 +490,7 @@ const SignupPage = () => {
                   type="text"
                   value={formData.region}
                   onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                  placeholder="예: 서울 강남구, 경기 성남시"
+                  placeholder="서울 강남구"
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -457,7 +503,7 @@ const SignupPage = () => {
                   type="text"
                   value={formData.workLocation}
                   onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
-                  placeholder="예: 판교, 여의도, 강남"
+                  placeholder="판교"
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
               </div>
@@ -492,91 +538,95 @@ const SignupPage = () => {
 
             <button
               type="submit"
-              disabled={!formData.region || !formData.workLocation || !formData.workType}
-              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300"
             >
               다음으로
             </button>
           </form>
         )}
 
-        {/* Step 5: Appearance (NEW!) */}
-        {step === STEPS.APPEARANCE && (
-          <form onSubmit={handleAppearanceSubmit} className="space-y-6">
+        {/* Step 5: Lifestyle (MBTI, 흡연, 음주) */}
+        {step === STEPS.LIFESTYLE && (
+          <form onSubmit={handleLifestyleSubmit} className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-surface-900 mb-2">
-                외적 정보를 알려주세요
+                라이프스타일을 알려주세요
               </h1>
               <p className="text-surface-500">
-                선택사항이지만 매칭에 도움이 돼요
+                나와 맞는 사람을 찾는 데 도움이 돼요
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* MBTI */}
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">
-                  키 (cm)
+                <label className="block text-sm font-medium text-surface-700 mb-3">
+                  MBTI
                 </label>
-                <input
-                  type="number"
-                  value={formData.height}
-                  onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                  placeholder="170"
-                  min="140"
-                  max="220"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">
-                  체형
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {BODY_TYPES.map((type) => (
+                <div className="grid grid-cols-4 gap-2">
+                  {MBTI_TYPES.map((mbti) => (
                     <button
-                      key={type.value}
+                      key={mbti}
                       type="button"
-                      onClick={() => setFormData({ ...formData, bodyType: type.value })}
-                      className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
-                        formData.bodyType === type.value
+                      onClick={() => setFormData({ ...formData, mbti })}
+                      className={`py-3 px-2 rounded-xl border-2 font-medium text-sm transition-all ${
+                        formData.mbti === mbti
                           ? 'border-primary-500 bg-primary-50 text-primary-700'
                           : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
                       }`}
                     >
-                      <span className="text-xl mb-1 block">{type.icon}</span>
-                      <span className="text-sm">{type.label}</span>
+                      {mbti}
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* 흡연 */}
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">
-                  얼굴 특징
+                <label className="block text-sm font-medium text-surface-700 mb-3">
+                  흡연 여부
                 </label>
-                <input
-                  type="text"
-                  value={formData.faceFeatures}
-                  onChange={(e) => setFormData({ ...formData, faceFeatures: e.target.value })}
-                  placeholder="예: 쌍거풀 있음, 동그란 얼굴"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  maxLength={50}
-                />
+                <div className="grid grid-cols-3 gap-3">
+                  {SMOKING_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, smoking: option.value })}
+                      className={`py-4 px-3 rounded-xl border-2 font-medium transition-all ${
+                        formData.smoking === option.value
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                      }`}
+                    >
+                      <span className="text-xl mb-1 block">{option.icon}</span>
+                      <span className="text-sm">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
+              {/* 음주 */}
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">
-                  패션 스타일
+                <label className="block text-sm font-medium text-surface-700 mb-3">
+                  음주 여부
                 </label>
-                <input
-                  type="text"
-                  value={formData.fashionStyle}
-                  onChange={(e) => setFormData({ ...formData, fashionStyle: e.target.value })}
-                  placeholder="예: 캐주얼, 미니멀, 스트릿"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  maxLength={50}
-                />
+                <div className="grid grid-cols-3 gap-3">
+                  {DRINKING_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, drinking: option.value })}
+                      className={`py-4 px-3 rounded-xl border-2 font-medium transition-all ${
+                        formData.drinking === option.value
+                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                      }`}
+                    >
+                      <span className="text-xl mb-1 block">{option.icon}</span>
+                      <span className="text-sm">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -593,10 +643,65 @@ const SignupPage = () => {
           </form>
         )}
 
-        {/* Step 6: Profile (자기소개 & 카카오톡) - IMPROVED! */}
+        {/* Step 6: Interests */}
+        {step === STEPS.INTERESTS && (
+          <form onSubmit={handleInterestsSubmit} className="space-y-6">
+            <div>
+              <h1 className="text-2xl font-bold text-surface-900 mb-2">
+                관심사를 선택해주세요
+              </h1>
+              <p className="text-surface-500">
+                최소 1개, 최대 5개까지 선택 가능해요
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {INTEREST_OPTIONS.map((interest) => {
+                const isSelected = formData.interests.includes(interest.value)
+                const isDisabled = !isSelected && formData.interests.length >= 5
+                return (
+                  <button
+                    key={interest.value}
+                    type="button"
+                    onClick={() => !isDisabled && toggleInterest(interest.value)}
+                    disabled={isDisabled}
+                    className={`py-3 px-4 rounded-full border-2 font-medium transition-all flex items-center gap-2 ${
+                      isSelected
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : isDisabled
+                        ? 'border-surface-200 bg-surface-100 text-surface-400 cursor-not-allowed'
+                        : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                    }`}
+                  >
+                    <span>{interest.icon}</span>
+                    <span className="text-sm">{interest.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <p className="text-surface-500 text-sm text-center">
+              {formData.interests.length}/5 선택됨
+            </p>
+
+            {error && (
+              <p className="text-red-500 text-sm">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={formData.interests.length < 1}
+              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+            >
+              다음으로
+            </button>
+          </form>
+        )}
+
+        {/* Step 7: Profile (자기소개 + 카톡) */}
         {step === STEPS.PROFILE && (
           <form onSubmit={handleProfileSubmit} className="space-y-6">
-            {/* NEW: 거의 완료 메시지 */}
+            {/* 거의 완료 메시지 */}
             <div className="bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200 rounded-2xl p-6 text-center">
               <div className="text-4xl mb-2">✨</div>
               <h2 className="text-xl font-bold text-surface-900 mb-1">
@@ -608,28 +713,9 @@ const SignupPage = () => {
             </div>
 
             <div className="space-y-4">
-              {/* NEW: 관심사 */}
               <div>
                 <label className="block text-sm font-medium text-surface-700 mb-2">
-                  관심사
-                </label>
-                <p className="text-xs text-surface-500 mb-2">
-                  예: 운동, 영화, 독서, 맛집탐방 (쉼표로 구분)
-                </p>
-                <input
-                  type="text"
-                  value={formData.interests}
-                  onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
-                  placeholder="운동, 영화, 요리"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  maxLength={100}
-                />
-              </div>
-
-              {/* IMPROVED: 자기소개 with 이상형 가이드 */}
-              <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">
-                  자기소개
+                  자기소개 <span className="text-primary-500">*</span>
                 </label>
                 <textarea
                   value={formData.bio}
@@ -642,8 +728,8 @@ const SignupPage = () => {
                   maxLength={300}
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
                 />
-                <p className="text-right text-surface-400 text-xs mt-1">
-                  {formData.bio.length}/300
+                <p className={`text-right text-xs mt-1 ${formData.bio.length < 10 ? 'text-red-500' : 'text-surface-400'}`}>
+                  {formData.bio.length}/300 (최소 10글자)
                 </p>
               </div>
 
@@ -670,7 +756,7 @@ const SignupPage = () => {
 
             <button
               type="submit"
-              disabled={!formData.kakaoId}
+              disabled={!formData.kakaoId || formData.bio.length < 10}
               className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
               다음으로
@@ -678,7 +764,7 @@ const SignupPage = () => {
           </form>
         )}
 
-        {/* Step 7: Agreement */}
+        {/* Step 8: Agreement */}
         {step === STEPS.AGREEMENT && (
           <div className="space-y-6">
             <div>
