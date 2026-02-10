@@ -125,6 +125,8 @@ const ProfilePage = () => {
     else if (field === 'smoking') setEditValue(profile?.smoking || '')
     else if (field === 'drinking') setEditValue(profile?.drinking || '')
     else if (field === 'interests') setEditInterests(getInterests())
+    else if (field === 'bio') setEditValue(profile?.bio || '')
+    else if (field === 'kakaoId') setEditValue(profile?.kakao_id || '')
     else if (field === 'phone') {
       setPhoneStep('input')
       setNewPhone('')
@@ -167,6 +169,8 @@ const ProfilePage = () => {
       else if (editModal === 'smoking') updateData.smoking = editValue
       else if (editModal === 'drinking') updateData.drinking = editValue
       else if (editModal === 'interests') updateData.interests = editInterests.join(',')
+      else if (editModal === 'bio') updateData.bio = editValue
+      else if (editModal === 'kakaoId') updateData.kakao_id = editValue
       
       const { error: updateError } = await supabase
         .from('users')
@@ -320,7 +324,7 @@ const ProfilePage = () => {
             </div>
 
             {/* 관심사 */}
-            <div className="py-3">
+            <div className="py-3 border-b border-surface-100">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-surface-500">관심사</span>
                 <button onClick={() => openEditModal('interests')} className="text-primary-500 text-sm">수정</button>
@@ -338,6 +342,26 @@ const ProfilePage = () => {
                 ) : (
                   <span className="text-surface-400">-</span>
                 )}
+              </div>
+            </div>
+
+            {/* 자기소개 */}
+            <div className="py-3 border-b border-surface-100">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-surface-500">자기소개</span>
+                <button onClick={() => openEditModal('bio')} className="text-primary-500 text-sm">수정</button>
+              </div>
+              <p className="text-surface-900 text-sm leading-relaxed">
+                {profile?.bio || <span className="text-surface-400">-</span>}
+              </p>
+            </div>
+
+            {/* 카카오톡 ID */}
+            <div className="flex items-center justify-between py-3">
+              <span className="text-surface-500">카카오톡 ID</span>
+              <div className="flex items-center gap-2">
+                <span className="text-surface-900 font-medium">{profile?.kakao_id || '-'}</span>
+                <button onClick={() => openEditModal('kakaoId')} className="text-primary-500 text-sm">수정</button>
               </div>
             </div>
           </div>
@@ -636,6 +660,67 @@ const ProfilePage = () => {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 수정 모달 - 자기소개 */}
+      {editModal === 'bio' && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto">
+            <h3 className="text-lg font-bold text-surface-900 mb-4">자기소개 수정</h3>
+            <textarea
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              placeholder="자기소개를 작성해주세요.&#10;&#10;💡 이상형도 간단히 적어주시면 매칭에 도움이 됩니다!"
+              rows={6}
+              maxLength={300}
+              className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2 resize-none"
+            />
+            <p className={`text-right text-xs mb-4 ${editValue.length < 10 ? 'text-red-500' : 'text-surface-400'}`}>
+              {editValue.length}/300 (최소 10글자)
+            </p>
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+            <div className="flex gap-3">
+              <button onClick={closeEditModal} className="flex-1 py-4 bg-surface-100 text-surface-600 font-medium rounded-xl">취소</button>
+              <button 
+                onClick={handleSave} 
+                disabled={saving || editValue.length < 10}
+                className="flex-1 py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-xl disabled:opacity-50"
+              >
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 수정 모달 - 카카오톡 ID */}
+      {editModal === 'kakaoId' && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-3xl p-6">
+            <h3 className="text-lg font-bold text-surface-900 mb-4">카카오톡 ID 수정</h3>
+            <input
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              placeholder="카카오톡 ID를 입력해주세요"
+              className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
+            />
+            <p className="text-surface-400 text-xs mb-4">
+              💡 매칭 성사 시 상대방에게 공개됩니다
+            </p>
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+            <div className="flex gap-3">
+              <button onClick={closeEditModal} className="flex-1 py-4 bg-surface-100 text-surface-600 font-medium rounded-xl">취소</button>
+              <button 
+                onClick={handleSave} 
+                disabled={saving || !editValue}
+                className="flex-1 py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-xl disabled:opacity-50"
+              >
+                {saving ? '저장 중...' : '저장'}
+              </button>
+            </div>
           </div>
         </div>
       )}
