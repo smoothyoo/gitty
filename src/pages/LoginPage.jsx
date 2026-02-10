@@ -41,7 +41,9 @@ const LoginPage = () => {
   try {
     // 기존 세션 정리 (캐시 문제 방지)
     await supabase.auth.signOut()
-    
+
+    await new Promise(resolve => setTimeout(resolve, 500))
+
     const fakeEmail = `${phone}@gitty.app`
       
       const { data, error: authError } = await supabase.auth.signInWithPassword({
