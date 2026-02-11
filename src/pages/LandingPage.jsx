@@ -1,7 +1,20 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 const LandingPage = () => {
   const navigate = useNavigate()
+
+  // 이미 로그인되어 있으면 홈으로 이동
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        navigate('/home')
+      }
+    }
+    checkSession()
+  }, [navigate])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface-900 via-surface-800 to-surface-900 relative overflow-hidden">
