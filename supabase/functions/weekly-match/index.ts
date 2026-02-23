@@ -185,14 +185,22 @@ Deno.serve(async (req) => {
       matchedFemales.add(pair.female.id)
     }
 
-    // 6. 매칭 결과 없는 유저 → no_match 처리
+    // 6. 매칭 못 된 유저 → no_match 레코드 생성 (자기 자신과 매칭)
     const noMatchUsers = [
       ...males.filter((u: User) => !matchedMales.has(u.id)),
       ...females.filter((u: User) => !matchedFemales.has(u.id)),
     ]
 
-    // no_match는 자기 자신과 매칭 대신 별도 상태로 표시
-    // (실제 no_match row는 만들지 않고 프론트에서 처리)
+    for (const u of noMatchUsers) {
+      newMatches.push({
+        user_a: u.id,
+        user_b: u.id,  // 자기 자신 = no_match 표시용
+        cycle_start: today,
+        response_deadline: new Date().toISOString(),
+        result_date: new Date().toISOString(),
+        status: 'no_match',
+      })
+    }
 
     // 7. DB에 insert
     if (newMatches.length > 0) {
@@ -206,7 +214,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         message: '매칭 완료',
-        matched: newMatches.length,
+        matched: newMatches.length - noMatchUsers.length,
         noMatch: noMatchUsers.length,
         weekStart: weekStartStr,
       }),
