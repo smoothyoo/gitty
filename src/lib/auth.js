@@ -1,4 +1,4 @@
-const AUTH_SECRET = import.meta.env.VITE_AUTH_SECRET_KEY || 'fallback_dev_key'
+const AUTH_SECRET = import.meta.env.VITE_AUTH_SECRET_KEY || 'gitty_2024'
 
 export const generatePassword = (phone) => {
   return `${phone}_${AUTH_SECRET}`
