@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { generatePassword, generateEmail } from '../lib/auth'
+import { DUMMY_SMS_CODE, SHOW_TEST_HINTS } from '../lib/constants'
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const [step, setStep] = useState('phone') // phone, verify
+  const [step, setStep] = useState('phone')
   const [phone, setPhone] = useState('')
   const [verifyCode, setVerifyCode] = useState('')
   const [loading, setLoading] = useState(false)
@@ -13,14 +15,13 @@ const LoginPage = () => {
   const handlePhoneSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (phone.length < 10) {
       setError('올바른 전화번호를 입력해주세요')
       return
     }
-    
+
     setLoading(true)
-    // MVP: 더미 인증
     setTimeout(() => {
       setLoading(false)
       setStep('verify')
@@ -28,27 +29,23 @@ const LoginPage = () => {
   }
 
   const handleVerifySubmit = async (e) => {
-  e.preventDefault()
-  setError('')
-  
-  if (verifyCode !== '1234') {
-    setError('인증번호가 일치하지 않습니다')
-    return
-  }
-  
-  setLoading(true)
-  
-  try {
-    // 기존 세션 정리 (캐시 문제 방지)
-    await supabase.auth.signOut()
+    e.preventDefault()
+    setError('')
 
-    await new Promise(resolve => setTimeout(resolve, 500))
+    if (verifyCode !== DUMMY_SMS_CODE) {
+      setError('인증번호가 일치하지 않습니다')
+      return
+    }
 
-    const fakeEmail = `${phone}@gitty.app`
-      
+    setLoading(true)
+
+    try {
+      await supabase.auth.signOut()
+      await new Promise(resolve => setTimeout(resolve, 500))
+
       const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: fakeEmail,
-        password: phone + '_gitty_2024',
+        email: generateEmail(phone),
+        password: generatePassword(phone),
       })
 
       if (authError) {
@@ -61,7 +58,7 @@ const LoginPage = () => {
         setLoading(false)
         return
       }
-      
+
       navigate('/home')
     } catch (err) {
       console.error('Login error:', err)
@@ -97,7 +94,7 @@ const LoginPage = () => {
           <form onSubmit={handlePhoneSubmit} className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-surface-900 mb-2">
-                다시 만나서 반가워요! 👋
+                다시 만나서 반가워요!
               </h1>
               <p className="text-surface-500">
                 가입하신 휴대폰 번호로 로그인해주세요
@@ -153,9 +150,11 @@ const LoginPage = () => {
               <p className="text-surface-500">
                 {phone}로 전송된 4자리 숫자
               </p>
-              <p className="text-accent-500 text-sm mt-2">
-                테스트용 인증번호: 1234
-              </p>
+              {SHOW_TEST_HINTS && (
+                <p className="text-accent-500 text-sm mt-2">
+                  테스트용 인증번호: {DUMMY_SMS_CODE}
+                </p>
+              )}
             </div>
 
             <div className="space-y-4">

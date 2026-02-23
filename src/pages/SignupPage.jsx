@@ -2,70 +2,31 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
+import { generatePassword, generateEmail } from '../lib/auth'
+import {
+  WORK_TYPES, MBTI_TYPES,
+  SMOKING_OPTIONS, DRINKING_OPTIONS, INTEREST_OPTIONS,
+  DUMMY_SMS_CODE, SHOW_TEST_HINTS,
+} from '../lib/constants'
 
 const STEPS = {
   PHONE: 0,
   VERIFY: 1,
   BASIC_INFO: 2,
   WORK_INFO: 3,
-  LIFESTYLE: 4,    // NEW: MBTI, 흡연, 음주
-  INTERESTS: 5,    // NEW: 관심사
-  PROFILE: 6,      // 자기소개 + 카톡
+  LIFESTYLE: 4,
+  INTERESTS: 5,
+  PROFILE: 6,
   AGREEMENT: 7,
 }
 
-const WORK_TYPES = [
-  { value: 'large', label: '대기업', icon: '🏢' },
-  { value: 'mid', label: '중견기업', icon: '🏬' },
-  { value: 'startup', label: '스타트업', icon: '🚀' },
-  { value: 'small', label: '중소기업', icon: '🏠' },
-  { value: 'entrepreneur', label: '창업/자영업', icon: '💼' },
-]
-
-const MBTI_TYPES = [
-  'ISTJ', 'ISFJ', 'INFJ', 'INTJ',
-  'ISTP', 'ISFP', 'INFP', 'INTP',
-  'ESTP', 'ESFP', 'ENFP', 'ENTP',
-  'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ',
-]
-
-const SMOKING_OPTIONS = [
-  { value: 'no', label: '비흡연', icon: '🚭' },
-  { value: 'sometimes', label: '가끔', icon: '🚬' },
-  { value: 'yes', label: '흡연', icon: '🚬' },
-]
-
-const DRINKING_OPTIONS = [
-  { value: 'no', label: '안 마셔요', icon: '🚫' },
-  { value: 'sometimes', label: '가끔 마셔요', icon: '🍺' },
-  { value: 'often', label: '자주 마셔요', icon: '🍻' },
-]
-
-const INTEREST_OPTIONS = [
-  { value: 'exercise', label: '운동/헬스', icon: '🏃' },
-  { value: 'movie', label: '영화/넷플릭스', icon: '🎬' },
-  { value: 'reading', label: '독서', icon: '📚' },
-  { value: 'food', label: '맛집탐방', icon: '🍽️' },
-  { value: 'travel', label: '여행', icon: '✈️' },
-  { value: 'music', label: '음악/공연', icon: '🎵' },
-  { value: 'cafe', label: '카페', icon: '☕' },
-  { value: 'game', label: '게임', icon: '🎮' },
-  { value: 'pet', label: '반려동물', icon: '🐶' },
-  { value: 'photo', label: '사진', icon: '📷' },
-  { value: 'cooking', label: '요리', icon: '🍳' },
-  { value: 'drink', label: '술/와인', icon: '🍷' },
-  { value: 'sports', label: '스포츠관람', icon: '⚽' },
-  { value: 'culture', label: '전시/문화', icon: '🎨' },
-  { value: 'selfdev', label: '자기계발', icon: '💪' },
-]
-
 const SignupPage = () => {
   const navigate = useNavigate()
-  const { refreshProfile } = useAuth()  // 이 줄 추가!
+  const { refreshProfile } = useAuth()
   const [step, setStep] = useState(STEPS.PHONE)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  
+
   // Form data
   const [phone, setPhone] = useState('')
   const [verifyCode, setVerifyCode] = useState('')
@@ -76,13 +37,10 @@ const SignupPage = () => {
     region: '',
     workLocation: '',
     workType: '',
-    // 라이프스타일
     mbti: '',
     smoking: '',
     drinking: '',
-    // 관심사 (배열)
     interests: [],
-    // 프로필
     bio: '',
     kakaoId: '',
   })
@@ -99,12 +57,12 @@ const SignupPage = () => {
   const handlePhoneSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (phone.length < 10) {
       setError('올바른 전화번호를 입력해주세요')
       return
     }
-    
+
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
@@ -115,66 +73,63 @@ const SignupPage = () => {
   const handleVerifySubmit = async (e) => {
     e.preventDefault()
     setError('')
-    
-    if (verifyCode !== '1234') {
+
+    if (verifyCode !== DUMMY_SMS_CODE) {
       setError('인증번호가 일치하지 않습니다')
       return
     }
-    
+
     setStep(STEPS.BASIC_INFO)
   }
 
   const handleBasicInfoSubmit = (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (!formData.name || !formData.gender || !formData.birthYear) {
       setError('모든 정보를 입력해주세요')
       return
     }
-    
+
     setStep(STEPS.WORK_INFO)
   }
 
   const handleWorkInfoSubmit = (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (!formData.region || !formData.workLocation || !formData.workType) {
       setError('모든 정보를 입력해주세요')
       return
     }
-    
+
     setStep(STEPS.LIFESTYLE)
   }
 
-  // NEW: 라이프스타일 제출
   const handleLifestyleSubmit = (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (!formData.mbti || !formData.smoking || !formData.drinking) {
       setError('모든 항목을 선택해주세요')
       return
     }
-    
+
     setStep(STEPS.INTERESTS)
   }
 
-  // NEW: 관심사 제출
   const handleInterestsSubmit = (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (formData.interests.length < 1) {
       setError('최소 1개 이상 선택해주세요')
       return
     }
-    
+
     setStep(STEPS.PROFILE)
   }
 
-  // 관심사 토글
   const toggleInterest = (value) => {
     const current = formData.interests
     if (current.includes(value)) {
@@ -187,17 +142,17 @@ const SignupPage = () => {
   const handleProfileSubmit = (e) => {
     e.preventDefault()
     setError('')
-    
+
     if (!formData.bio || formData.bio.length < 10) {
       setError('자기소개를 최소 10글자 이상 입력해주세요')
       return
     }
-    
+
     if (!formData.kakaoId) {
       setError('카카오톡 ID는 필수입니다')
       return
     }
-    
+
     setStep(STEPS.AGREEMENT)
   }
 
@@ -220,25 +175,22 @@ const SignupPage = () => {
 
   const handleFinalSubmit = async () => {
     setError('')
-    
+
     if (!agreements.age || !agreements.terms || !agreements.privacy) {
       setError('필수 약관에 동의해주세요')
       return
     }
-    
+
     setLoading(true)
-    
+
     try {
-      const fakeEmail = `${phone}@gitty.app`
-      
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: fakeEmail,
-        password: phone + '_gitty_2024',
+        email: generateEmail(phone),
+        password: generatePassword(phone),
       })
-      
+
       if (authError) throw authError
-      
-      // users 테이블에 프로필 저장
+
       const { error: profileError } = await supabase
         .from('users')
         .insert({
@@ -250,20 +202,17 @@ const SignupPage = () => {
           region: formData.region,
           work_location: formData.workLocation,
           work_type: formData.workType,
-          // 라이프스타일
           mbti: formData.mbti,
           smoking: formData.smoking,
           drinking: formData.drinking,
-          // 관심사 (배열을 문자열로)
           interests: formData.interests.join(','),
-          // 프로필
           bio: formData.bio,
           kakao_id: formData.kakaoId,
           marketing_agreed: agreements.marketing,
         })
-      
+
       if (profileError) throw profileError
-      
+
       await refreshProfile(authData.user.id)
       navigate('/home')
     } catch (err) {
@@ -305,7 +254,7 @@ const SignupPage = () => {
         </div>
         {/* Progress bar */}
         <div className="h-1 bg-surface-200">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-500"
             style={{ width: `${progress}%` }}
           />
@@ -372,9 +321,11 @@ const SignupPage = () => {
                 className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 maxLength={4}
               />
-              <p className="text-surface-400 text-xs mt-2 text-center">
-                테스트용 인증번호: 1234
-              </p>
+              {SHOW_TEST_HINTS && (
+                <p className="text-surface-400 text-xs mt-2 text-center">
+                  테스트용 인증번호: {DUMMY_SMS_CODE}
+                </p>
+              )}
             </div>
 
             {error && (
@@ -704,7 +655,6 @@ const SignupPage = () => {
         {/* Step 7: Profile (자기소개 + 카톡) */}
         {step === STEPS.PROFILE && (
           <form onSubmit={handleProfileSubmit} className="space-y-6">
-            {/* 거의 완료 메시지 */}
             <div className="bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-200 rounded-2xl p-6 text-center">
               <div className="text-4xl mb-2">✨</div>
               <h2 className="text-xl font-bold text-surface-900 mb-1">
@@ -723,10 +673,7 @@ const SignupPage = () => {
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                  placeholder="자기소개를 작성해주세요.
-
-💡 이상형도 간단히 적어주시면 매칭에 도움이 됩니다!
-예: 활발하고 유머러스한 분, 독서 좋아하시는 분 등"
+                  placeholder={'자기소개를 작성해주세요.\n\n💡 이상형도 간단히 적어주시면 매칭에 도움이 됩니다!\n예: 활발하고 유머러스한 분, 독서 좋아하시는 분 등'}
                   rows={6}
                   maxLength={300}
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
@@ -748,7 +695,7 @@ const SignupPage = () => {
                   className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 />
                 <p className="text-surface-400 text-xs mt-2">
-                  💡 서로 매칭이 성사되면 카카오톡 ID가 공개됩니다
+                  서로 매칭이 성사되면 카카오톡 ID가 공개됩니다
                 </p>
               </div>
             </div>
@@ -780,7 +727,6 @@ const SignupPage = () => {
             </div>
 
             <div className="space-y-3">
-              {/* All agree */}
               <button
                 onClick={() => handleAgreementChange('all')}
                 className={`w-full p-4 rounded-xl border-2 flex items-center gap-3 transition-all ${
@@ -803,7 +749,6 @@ const SignupPage = () => {
 
               <div className="border-t border-surface-200 my-4" />
 
-              {/* Individual agreements */}
               {[
                 { key: 'age', label: '(필수) 만 18세 이상입니다', required: true },
                 { key: 'terms', label: '(필수) 서비스 이용약관 동의', required: true },
