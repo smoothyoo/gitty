@@ -26,13 +26,19 @@ const HomePage = () => {
 
   const fetchCurrentMatch = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0]
+      // 이번 주 월요일 계산 (주간 매칭 기준)
+      const now = new Date()
+      const dayOfWeek = now.getDay() // 0=일, 1=월, ..., 6=토
+      const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+      const weekStart = new Date(now)
+      weekStart.setDate(now.getDate() - daysFromMonday)
+      const weekStartStr = weekStart.toISOString().split('T')[0]
 
       const { data: matches, error } = await supabase
         .from('matches')
         .select('*')
         .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
-        .gte('cycle_start', today)
+        .gte('cycle_start', weekStartStr)
         .order('cycle_start', { ascending: false })
         .limit(1)
         .single()
