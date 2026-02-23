@@ -11,6 +11,10 @@ CREATE TABLE users (
   region VARCHAR(100), -- 거주 지역
   work_location VARCHAR(100), -- 직장 위치
   work_type VARCHAR(20) CHECK (work_type IN ('large', 'mid', 'startup', 'small', 'entrepreneur')),
+  mbti VARCHAR(4) CHECK (mbti IN ('ISTJ','ISFJ','INFJ','INTJ','ISTP','ISFP','INFP','INTP','ESTP','ESFP','ENFP','ENTP','ESTJ','ESFJ','ENFJ','ENTJ')),
+  smoking VARCHAR(10) CHECK (smoking IN ('no', 'sometimes', 'yes')),
+  drinking VARCHAR(10) CHECK (drinking IN ('no', 'sometimes', 'often')),
+  interests TEXT, -- 쉼표로 구분된 관심사 키
   bio TEXT, -- 자기소개
   kakao_id VARCHAR(50), -- 카카오톡 ID (매칭 성공 시 공개)
   marketing_agreed BOOLEAN DEFAULT FALSE,
@@ -30,7 +34,7 @@ CREATE TABLE matches (
   response_b BOOLEAN DEFAULT NULL,
   
   -- 매칭 최종 상태: waiting(응답대기), matched(성사), rejected(거절/시간초과)
-  status VARCHAR(20) DEFAULT 'waiting' CHECK (status IN ('waiting', 'matched', 'rejected')),
+  status VARCHAR(20) DEFAULT 'waiting' CHECK (status IN ('waiting', 'matched', 'rejected', 'no_match')),
   
   -- 사이클 관리
   cycle_start DATE NOT NULL, -- Day 1 (프로필 공개일)
@@ -85,3 +89,9 @@ CREATE INDEX idx_matches_cycle ON matches(cycle_start);
 CREATE INDEX idx_matches_status ON matches(status);
 CREATE INDEX idx_users_gender ON users(gender);
 CREATE INDEX idx_users_work_type ON users(work_type);
+
+-- Migration: 라이프스타일 컬럼 추가 (기존 DB에 적용 시)
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS mbti VARCHAR(4);
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS smoking VARCHAR(10);
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS drinking VARCHAR(10);
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS interests TEXT;

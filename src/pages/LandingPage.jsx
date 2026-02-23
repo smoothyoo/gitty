@@ -1,20 +1,16 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { useAuth } from '../contexts/AuthContext'
 
 const LandingPage = () => {
   const navigate = useNavigate()
+  const { user, loading } = useAuth()
 
-  // 이미 로그인되어 있으면 홈으로 이동
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        navigate('/home')
-      }
+    if (!loading && user) {
+      navigate('/home')
     }
-    checkSession()
-  }, [navigate])
+  }, [user, loading, navigate])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface-900 via-surface-800 to-surface-900 relative overflow-hidden">
@@ -23,7 +19,7 @@ const LandingPage = () => {
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-full blur-3xl animate-float" />
         <div className="absolute top-1/2 -left-20 w-60 h-60 bg-gradient-to-br from-accent-500/15 to-primary-500/15 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }} />
         <div className="absolute bottom-20 right-1/4 w-40 h-40 bg-gradient-to-br from-primary-400/10 to-accent-400/10 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }} />
-        
+
         {/* Grid pattern */}
         <div className="absolute inset-0 opacity-[0.02]" style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
@@ -93,7 +89,7 @@ const LandingPage = () => {
               >
                 1분만에 가입하기
               </button>
-              
+
               <button
                 onClick={() => navigate('/login')}
                 className="w-full bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white font-medium py-4 px-6 rounded-2xl transition-all duration-300"
