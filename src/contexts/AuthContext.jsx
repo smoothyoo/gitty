@@ -35,10 +35,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true
 
-    const checkSession = async () => {
+    const initAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        
+
         if (mounted) {
           if (session?.user) {
             setUser(session.user)
@@ -52,20 +52,21 @@ export const AuthProvider = ({ children }) => {
       }
     }
 
-    checkSession()
+    initAuth()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (mounted) {
-          if (session?.user) {
-            setUser(session.user)
-            await fetchProfile(session.user.id)
-          } else {
-            setUser(null)
-            setProfile(null)
-          }
-          setLoading(false)
+      (event, session) => {
+        if (!mounted) return
+
+        if (session?.user) {
+          setUser(session.user)
+          // fetchProfile을 non-blocking으로 호출 (콜백 내 await 금지)
+          fetchProfile(session.user.id)
+        } else {
+          setUser(null)
+          setProfile(null)
         }
+        setLoading(false)
       }
     )
 
