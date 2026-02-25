@@ -217,9 +217,16 @@ const HomePage = () => {
               <h2 className="text-xl font-bold text-surface-900 mb-1">
                 {matchedUser?.name} 님
               </h2>
-              <p className="text-surface-500 text-sm">
-                {matchedUser?.birth_year ? `${new Date().getFullYear() - matchedUser.birth_year + 1}세` : ''} · {matchedUser?.gender === 'male' ? '남성' : '여성'}
-              </p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-surface-500 text-sm">
+                  {matchedUser?.birth_year ? `${new Date().getFullYear() - matchedUser.birth_year + 1}세` : ''} · {matchedUser?.gender === 'male' ? '남성' : '여성'}
+                </p>
+                {matchedUser?.work_verified && (
+                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                    ✅ 직장인증
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl mb-4">
@@ -350,9 +357,16 @@ const HomePage = () => {
             <h2 className="text-xl font-bold text-surface-900 mb-1">
               {matchedUser?.name?.charAt(0)}** 님
             </h2>
-            <p className="text-surface-500 text-sm">
-              {matchedUser?.birth_year ? `${new Date().getFullYear() - matchedUser.birth_year + 1}세` : ''} · {matchedUser?.gender === 'male' ? '남성' : '여성'}
-            </p>
+            <div className="flex items-center justify-center gap-2">
+              <p className="text-surface-500 text-sm">
+                {matchedUser?.birth_year ? `${new Date().getFullYear() - matchedUser.birth_year + 1}세` : ''} · {matchedUser?.gender === 'male' ? '남성' : '여성'}
+              </p>
+              {matchedUser?.work_verified && (
+                <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                  ✅ 직장인증
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="space-y-3">
@@ -555,6 +569,25 @@ const HomePage = () => {
                 {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
               </p>
             </div>
+
+            {/* 직장 인증 유도 카드 (미인증 유저만) */}
+            {profile && !profile.work_verified && (
+              <button
+                onClick={() => navigate('/profile')}
+                className="w-full mb-4 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-2xl flex items-center gap-3 hover:from-orange-100 hover:to-yellow-100 transition-all text-left"
+              >
+                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <span className="text-xl">🔥</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-orange-800 font-semibold text-sm">직장 인증하고 매칭률 올리기</p>
+                  <p className="text-orange-600 text-xs mt-0.5">인증 뱃지 획득 · 매칭 점수 +15점</p>
+                </div>
+                <svg className="w-4 h-4 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
 
             {renderMatchStatus()}
           </>
