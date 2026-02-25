@@ -28,6 +28,8 @@ const ProfilePage = () => {
   const [editModal, setEditModal] = useState(null)
   const [editValue, setEditValue] = useState('')
   const [editInterests, setEditInterests] = useState([])
+  const [editRegionCity, setEditRegionCity] = useState('')
+  const [editRegionDistrict, setEditRegionDistrict] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -53,8 +55,11 @@ const ProfilePage = () => {
     setError('')
     setEditModal(field)
 
-    if (field === 'region') setEditValue(profile?.region || '')
-    else if (field === 'workLocation') setEditValue(profile?.work_location || '')
+    if (field === 'region') {
+      const [city, district] = (profile?.region || '').split(':')
+      setEditRegionCity(city || '')
+      setEditRegionDistrict(district || '')
+    }
     else if (field === 'workType') setEditValue(profile?.work_type || '')
     else if (field === 'mbti') setEditValue(profile?.mbti || '')
     else if (field === 'smoking') setEditValue(profile?.smoking || '')
@@ -73,6 +78,8 @@ const ProfilePage = () => {
     setEditModal(null)
     setEditValue('')
     setEditInterests([])
+    setEditRegionCity('')
+    setEditRegionDistrict('')
     setError('')
     setPhoneStep('input')
     setNewPhone('')
@@ -94,8 +101,7 @@ const ProfilePage = () => {
     try {
       let updateData = {}
 
-      if (editModal === 'region') updateData.region = editValue
-      else if (editModal === 'workLocation') updateData.work_location = editValue
+      if (editModal === 'region') updateData.region = `${editRegionCity}:${editRegionDistrict}`
       else if (editModal === 'workType') updateData.work_type = editValue
       else if (editModal === 'mbti') updateData.mbti = editValue
       else if (editModal === 'smoking') updateData.smoking = editValue
@@ -368,21 +374,64 @@ const ProfilePage = () => {
 
       <BottomNav />
 
-      {/* 수정 모달 - 텍스트 입력 (거주 지역, 직장 위치) */}
-      <BottomSheet
-        isOpen={editModal === 'region' || editModal === 'workLocation'}
-        onClose={closeEditModal}
-        title={editModal === 'region' ? '거주 지역 수정' : '직장 위치 수정'}
-      >
-        <input
-          type="text"
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          placeholder={editModal === 'region' ? '서울 강남구' : '판교'}
-          className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
-        />
+      {/* 수정 모달 - 거주 지역 (2단 선택) */}
+      <BottomSheet isOpen={editModal === 'region'} onClose={closeEditModal} title="거주 지역 수정" maxHeight>
+        {/* 1단계: 서울/경기 */}
+        <div className="mb-4">
+          <p className="text-sm font-medium text-surface-700 mb-3">시/도</p>
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(REGIONS).map(([key, region]) => (
+              <button
+                key={key}
+                onClick={() => { setEditRegionCity(key); setEditRegionDistrict('') }}
+                className={`py-4 px-4 rounded-xl border-2 font-semibold text-lg transition-all ${
+                  editRegionCity === key
+                    ? 'border-primary-500 bg-primary-50 text-primary-700'
+                    : 'border-surface-200 bg-surface-50 text-surface-600'
+                }`}
+              >
+                {region.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2단계: 구/시 */}
+        {editRegionCity && (
+          <div className="mb-4">
+            <p className="text-sm font-medium text-surface-700 mb-3">구/시</p>
+            <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto py-1">
+              {REGIONS[editRegionCity].districts.map((district) => (
+                <button
+                  key={district}
+                  onClick={() => setEditRegionDistrict(district)}
+                  className={`py-2 px-3 rounded-full border-2 text-sm font-medium transition-all ${
+                    editRegionDistrict === district
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-surface-200 bg-white text-surface-600'
+                  }`}
+                >
+                  {district}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {editRegionCity && editRegionDistrict && (
+          <div className="p-3 bg-primary-50 rounded-xl text-center mb-4">
+            <p className="text-primary-700 font-medium">
+              📍 {REGIONS[editRegionCity].label} {editRegionDistrict}
+            </p>
+          </div>
+        )}
+
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        <ModalButtons onCancel={closeEditModal} onSave={handleSave} />
+        <ModalButtons
+          onCancel={closeEditModal}
+          onSave={handleSave}
+          disabled={!editRegionCity || !editRegionDistrict}
+        />
       </BottomSheet>
 
       {/* 수정 모달 - 직장 유형 */}
