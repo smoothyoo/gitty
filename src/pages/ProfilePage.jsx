@@ -9,8 +9,17 @@ import {
   WORK_TYPES, WORK_TYPE_LABELS, MBTI_TYPES,
   SMOKING_OPTIONS, SMOKING_LABELS, DRINKING_OPTIONS, DRINKING_LABELS,
   INTEREST_OPTIONS, INTEREST_LABELS, parseInterests,
-  DUMMY_SMS_CODE, SHOW_TEST_HINTS,
+  REGIONS, PERSONAL_EMAIL_DOMAINS,
+  DUMMY_SMS_CODE, SHOW_TEST_HINTS, WORK_VERIFICATION_FORM_URL,
 } from '../lib/constants'
+
+// "seoul:강남구" → "서울 강남구"
+const formatRegion = (regionStr) => {
+  if (!regionStr) return '-'
+  const [city, district] = regionStr.split(':')
+  const cityLabel = REGIONS[city]?.label || city
+  return district ? `${cityLabel} ${district}` : cityLabel
+}
 
 const ProfilePage = () => {
   const navigate = useNavigate()
@@ -25,6 +34,13 @@ const ProfilePage = () => {
   const [phoneStep, setPhoneStep] = useState('input')
   const [newPhone, setNewPhone] = useState('')
   const [verifyCode, setVerifyCode] = useState('')
+
+  // 직장 인증 상태
+  const [workEmail, setWorkEmail] = useState('')
+  const [workVerifyCode, setWorkVerifyCode] = useState('')
+  const [workCodeSent, setWorkCodeSent] = useState(false)
+  const [workVerifyLoading, setWorkVerifyLoading] = useState(false)
+  const [workVerifyError, setWorkVerifyError] = useState('')
 
   const currentInterests = parseInterests(profile?.interests)
 
@@ -149,6 +165,57 @@ const ProfilePage = () => {
     }
   }
 
+  const isPersonalEmail = (email) => {
+    const domain = email.split('@')[1]?.toLowerCase()
+    return !domain || PERSONAL_EMAIL_DOMAINS.includes(domain)
+  }
+
+  const handleWorkEmailSend = () => {
+    setWorkVerifyError('')
+    if (!workEmail.includes('@')) {
+      setWorkVerifyError('올바른 이메일 주소를 입력해주세요')
+      return
+    }
+    if (isPersonalEmail(workEmail)) {
+      setWorkVerifyError('개인 이메일은 사용할 수 없어요. 회사 이메일을 입력해주세요.')
+      return
+    }
+    setWorkVerifyLoading(true)
+    setTimeout(() => {
+      setWorkVerifyLoading(false)
+      setWorkCodeSent(true)
+    }, 1000)
+  }
+
+  const handleWorkVerifyCode = async () => {
+    setWorkVerifyError('')
+    if (workVerifyCode !== DUMMY_SMS_CODE) {
+      setWorkVerifyError('인증코드가 일치하지 않습니다')
+      return
+    }
+    setWorkVerifyLoading(true)
+    try {
+      const domain = workEmail.split('@')[1]
+      const company = domain.split('.')[0]
+      await supabase.from('users').update({
+        work_verified: true,
+        work_email: workEmail,
+        work_company: company,
+        verified_at: new Date().toISOString(),
+      }).eq('id', user.id)
+      await refreshProfile(user.id)
+      setEditModal(null)
+      setWorkEmail('')
+      setWorkVerifyCode('')
+      setWorkCodeSent(false)
+    } catch (err) {
+      console.error('Work verify error:', err)
+      setWorkVerifyError('인증 중 오류가 발생했습니다')
+    } finally {
+      setWorkVerifyLoading(false)
+    }
+  }
+
   const ModalButtons = ({ onCancel, onSave, disabled }) => (
     <div className="flex gap-3">
       <button onClick={onCancel} className="flex-1 py-4 bg-surface-100 text-surface-600 font-medium rounded-xl">취소</button>
@@ -192,13 +259,19 @@ const ProfilePage = () => {
             <p className="text-center text-white/80 text-sm mt-1">
               {profile?.birth_year ? `${new Date().getFullYear() - profile.birth_year + 1}세` : ''} · {profile?.gender === 'male' ? '남성' : '여성'}
             </p>
+            {profile?.work_verified && (
+              <div className="flex justify-center mt-2">
+                <span className="inline-flex items-center gap-1 bg-white/20 text-white text-xs px-3 py-1 rounded-full">
+                  ✅ 직장 인증됨 · {profile.work_company}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="p-6 space-y-4">
             {[
               { label: '휴대폰', value: profile?.phone, field: 'phone' },
-              { label: '거주 지역', value: profile?.region, field: 'region' },
-              { label: '직장 위치', value: profile?.work_location, field: 'workLocation' },
+              { label: '거주 지역', value: formatRegion(profile?.region), field: 'region' },
               { label: '직장 유형', value: WORK_TYPE_LABELS[profile?.work_type], field: 'workType' },
               { label: 'MBTI', value: profile?.mbti, field: 'mbti' },
               { label: '흡연', value: SMOKING_LABELS[profile?.smoking], field: 'smoking' },
@@ -247,11 +320,36 @@ const ProfilePage = () => {
             </div>
 
             {/* 카카오톡 ID */}
-            <div className="flex items-center justify-between py-3">
+            <div className="flex items-center justify-between py-3 border-b border-surface-100">
               <span className="text-surface-500">카카오톡 ID</span>
               <div className="flex items-center gap-2">
                 <span className="text-surface-900 font-medium">{profile?.kakao_id || '-'}</span>
                 <button onClick={() => openEditModal('kakaoId')} className="text-primary-500 text-sm">수정</button>
+              </div>
+            </div>
+
+            {/* 직장 인증 */}
+            <div className="py-3">
+              <div className="flex items-center justify-between">
+                <span className="text-surface-500">직장 인증</span>
+                {profile?.work_verified ? (
+                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full font-medium">
+                    ✅ 인증됨
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setWorkEmail('')
+                      setWorkVerifyCode('')
+                      setWorkCodeSent(false)
+                      setWorkVerifyError('')
+                      setEditModal('workVerify')
+                    }}
+                    className="text-sm px-3 py-1 bg-orange-100 text-orange-600 rounded-full font-medium hover:bg-orange-200 transition-all"
+                  >
+                    🔥 인증하기
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -491,6 +589,79 @@ const ProfilePage = () => {
         </p>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <ModalButtons onCancel={closeEditModal} onSave={handleSave} disabled={!editValue} />
+      </BottomSheet>
+
+      {/* 직장 인증 모달 */}
+      <BottomSheet
+        isOpen={editModal === 'workVerify'}
+        onClose={() => setEditModal(null)}
+        title="직장 인증"
+      >
+        <div className="space-y-4">
+          <div className="p-3 bg-primary-50 border border-primary-200 rounded-xl">
+            <p className="text-primary-700 text-sm">✨ 인증 시 매칭 점수 +15점 · 인증 뱃지 표시</p>
+          </div>
+
+          {!workCodeSent ? (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-2">회사 이메일</label>
+                <input
+                  type="email"
+                  value={workEmail}
+                  onChange={(e) => setWorkEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <p className="text-surface-400 text-xs mt-1">gmail, naver 등 개인 이메일 불가</p>
+              </div>
+              {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
+              <button
+                onClick={handleWorkEmailSend}
+                disabled={!workEmail || workVerifyLoading}
+                className="w-full py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl disabled:opacity-50"
+              >
+                {workVerifyLoading ? '전송 중...' : '인증코드 받기'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-surface-700 mb-2">인증코드</label>
+                <input
+                  type="text"
+                  value={workVerifyCode}
+                  onChange={(e) => setWorkVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="1234"
+                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  maxLength={4}
+                />
+                {SHOW_TEST_HINTS && (
+                  <p className="text-surface-400 text-xs mt-2 text-center">테스트용 인증코드: {DUMMY_SMS_CODE}</p>
+                )}
+              </div>
+              {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
+              <button
+                onClick={handleWorkVerifyCode}
+                disabled={workVerifyCode.length < 4 || workVerifyLoading}
+                className="w-full py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl disabled:opacity-50"
+              >
+                {workVerifyLoading ? '인증 중...' : '인증 완료'}
+              </button>
+            </>
+          )}
+
+          {WORK_VERIFICATION_FORM_URL && (
+            <a
+              href={WORK_VERIFICATION_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-primary-500 text-sm hover:text-primary-700"
+            >
+              회사 이메일이 없으신가요? → 서류 제출하기
+            </a>
+          )}
+        </div>
       </BottomSheet>
     </div>
   )

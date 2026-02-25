@@ -95,3 +95,15 @@ CREATE INDEX idx_users_work_type ON users(work_type);
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS smoking VARCHAR(10);
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS drinking VARCHAR(10);
 -- ALTER TABLE users ADD COLUMN IF NOT EXISTS interests TEXT;
+
+-- Migration: 직장 인증 컬럼 추가
+-- Supabase SQL Editor에서 실행:
+ALTER TABLE users ADD COLUMN IF NOT EXISTS work_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS work_email TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS work_company TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
+
+-- work_type: 공무원/전문직 추가 (기존 CHECK 제약 업데이트)
+-- ALTER TABLE users DROP CONSTRAINT IF EXISTS users_work_type_check;
+-- ALTER TABLE users ADD CONSTRAINT users_work_type_check
+--   CHECK (work_type IN ('large', 'mid', 'startup', 'small', 'public', 'professional', 'entrepreneur'));

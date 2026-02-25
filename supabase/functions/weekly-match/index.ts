@@ -34,6 +34,12 @@ interface User {
   interests: string
   mbti: string
   region: string
+  work_verified: boolean
+}
+
+// "seoul:강남구" 에서 도시 파트만 추출
+function getRegionCity(region: string): string {
+  return region?.split(':')[0] || ''
 }
 
 // 두 유저 간 궁합 점수 계산
@@ -65,9 +71,13 @@ function calcScore(a: User, b: User): number {
     else if (ageDiff <= 10) score += 10
   }
 
-  // 5. 같은 지역 (10점)
-  if (a.region && b.region && a.region === b.region) {
-    score += 10
+  // 5. 지역 점수: 같은 구/시 10점, 같은 도시(서울/경기) 5점
+  if (a.region && b.region) {
+    if (a.region === b.region) {
+      score += 10 // 같은 구/시
+    } else if (getRegionCity(a.region) === getRegionCity(b.region)) {
+      score += 5  // 같은 도시
+    }
   }
 
   // 6. MBTI 궁합 (25점)
@@ -76,6 +86,11 @@ function calcScore(a: User, b: User): number {
     if (compatibleWithA.includes(b.mbti)) {
       score += 25
     }
+  }
+
+  // 7. 직장 인증 유저끼리 보너스 (15점)
+  if (a.work_verified && b.work_verified) {
+    score += 15
   }
 
   return score
@@ -118,7 +133,7 @@ Deno.serve(async (req) => {
     // 3. 이번 주 미매칭 유저 전체 조회
     const { data: allUsers, error: usersError } = await supabase
       .from('users')
-      .select('id, gender, birth_year, smoking, drinking, interests, mbti, region')
+      .select('id, gender, birth_year, smoking, drinking, interests, mbti, region, work_verified')
 
     if (usersError) throw usersError
 
