@@ -224,11 +224,11 @@ const ProfilePage = () => {
 
   const ModalButtons = ({ onCancel, onSave, disabled }) => (
     <div className="flex gap-3">
-      <button onClick={onCancel} className="flex-1 py-4 bg-surface-100 text-surface-600 font-medium rounded-xl">취소</button>
+      <button onClick={onCancel} className="flex-1 py-4 bg-zinc-800 text-zinc-400 font-medium rounded-xl">취소</button>
       <button
         onClick={onSave}
         disabled={disabled || saving}
-        className="flex-1 py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-xl disabled:opacity-50"
+        className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl disabled:bg-zinc-800 disabled:text-zinc-600 transition-all"
       >
         {saving ? '저장 중...' : '저장'}
       </button>
@@ -236,24 +236,24 @@ const ProfilePage = () => {
   )
 
   return (
-    <div className="min-h-screen bg-surface-50 pb-24">
+    <div className="min-h-screen bg-zinc-900 pb-24">
       {/* Header */}
-      <header className="sticky top-0 bg-surface-50/80 backdrop-blur-lg border-b border-surface-200 z-50">
+      <header className="sticky top-0 bg-zinc-900/80 backdrop-blur-lg border-b border-zinc-800 z-50">
         <div className="max-w-lg mx-auto px-6 py-4 flex items-center justify-between">
-          <button onClick={() => navigate('/home')} className="p-2 -ml-2 text-surface-600 hover:text-surface-900">
+          <button onClick={() => navigate('/home')} className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="font-bold text-lg">내 정보</h1>
+          <h1 className="font-bold text-lg text-white">내 정보</h1>
           <div className="w-10" />
         </div>
       </header>
 
       <main className="max-w-lg mx-auto px-6 py-6">
         {/* Profile Card */}
-        <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 overflow-hidden mb-6">
-          <div className="bg-gradient-to-r from-primary-500 to-accent-500 px-6 py-8">
+        <div className="bg-zinc-800 rounded-3xl overflow-hidden mb-6">
+          <div className="bg-orange-500 px-6 py-8">
             <div className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
               <span className="text-4xl">
                 {profile?.gender === 'male' ? '👨' : '👩'}
@@ -274,7 +274,7 @@ const ProfilePage = () => {
             )}
           </div>
 
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-1">
             {[
               { label: '휴대폰', value: profile?.phone, field: 'phone' },
               { label: '거주 지역', value: formatRegion(profile?.region), field: 'region' },
@@ -283,63 +283,63 @@ const ProfilePage = () => {
               { label: '흡연', value: SMOKING_LABELS[profile?.smoking], field: 'smoking' },
               { label: '음주', value: DRINKING_LABELS[profile?.drinking], field: 'drinking' },
             ].map((item) => (
-              <div key={item.field} className="flex items-center justify-between py-3 border-b border-surface-100">
-                <span className="text-surface-500">{item.label}</span>
+              <div key={item.field} className="flex items-center justify-between py-3 border-b border-zinc-700">
+                <span className="text-zinc-400">{item.label}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-surface-900 font-medium">{item.value || '-'}</span>
-                  <button onClick={() => openEditModal(item.field)} className="text-primary-500 text-sm">수정</button>
+                  <span className="text-white font-medium">{item.value || '-'}</span>
+                  <button onClick={() => openEditModal(item.field)} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
                 </div>
               </div>
             ))}
 
             {/* 관심사 */}
-            <div className="py-3 border-b border-surface-100">
+            <div className="py-3 border-b border-zinc-700">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-surface-500">관심사</span>
-                <button onClick={() => openEditModal('interests')} className="text-primary-500 text-sm">수정</button>
+                <span className="text-zinc-400">관심사</span>
+                <button onClick={() => openEditModal('interests')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {currentInterests.length > 0 ? (
                   currentInterests.map((interest) => (
                     <span
                       key={interest}
-                      className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-sm"
+                      className="px-3 py-1 bg-orange-500/15 text-orange-400 rounded-full text-sm"
                     >
                       {INTEREST_LABELS[interest] || interest}
                     </span>
                   ))
                 ) : (
-                  <span className="text-surface-400">-</span>
+                  <span className="text-zinc-500">-</span>
                 )}
               </div>
             </div>
 
             {/* 자기소개 */}
-            <div className="py-3 border-b border-surface-100">
+            <div className="py-3 border-b border-zinc-700">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-surface-500">자기소개</span>
-                <button onClick={() => openEditModal('bio')} className="text-primary-500 text-sm">수정</button>
+                <span className="text-zinc-400">자기소개</span>
+                <button onClick={() => openEditModal('bio')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
               </div>
-              <p className="text-surface-900 text-sm leading-relaxed">
-                {profile?.bio ? profile.bio : <span className="text-surface-400">-</span>}
+              <p className="text-white text-sm leading-relaxed">
+                {profile?.bio ? profile.bio : <span className="text-zinc-500">-</span>}
               </p>
             </div>
 
             {/* 카카오톡 ID */}
-            <div className="flex items-center justify-between py-3 border-b border-surface-100">
-              <span className="text-surface-500">카카오톡 ID</span>
+            <div className="flex items-center justify-between py-3 border-b border-zinc-700">
+              <span className="text-zinc-400">카카오톡 ID</span>
               <div className="flex items-center gap-2">
-                <span className="text-surface-900 font-medium">{profile?.kakao_id || '-'}</span>
-                <button onClick={() => openEditModal('kakaoId')} className="text-primary-500 text-sm">수정</button>
+                <span className="text-white font-medium">{profile?.kakao_id || '-'}</span>
+                <button onClick={() => openEditModal('kakaoId')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
               </div>
             </div>
 
             {/* 직장 인증 */}
             <div className="py-3">
               <div className="flex items-center justify-between">
-                <span className="text-surface-500">직장 인증</span>
+                <span className="text-zinc-400">직장 인증</span>
                 {profile?.work_verified ? (
-                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full font-medium">
+                  <span className="inline-flex items-center gap-1 bg-blue-500/15 text-blue-400 text-sm px-3 py-1 rounded-full font-medium">
                     ✅ 인증됨
                   </span>
                 ) : (
@@ -351,7 +351,7 @@ const ProfilePage = () => {
                       setWorkVerifyError('')
                       setEditModal('workVerify')
                     }}
-                    className="text-sm px-3 py-1 bg-orange-100 text-orange-600 rounded-full font-medium hover:bg-orange-200 transition-all"
+                    className="text-sm px-3 py-1 bg-orange-500/15 text-orange-400 rounded-full font-medium hover:bg-orange-500/25 transition-all"
                   >
                     🔥 인증하기
                   </button>
@@ -365,7 +365,7 @@ const ProfilePage = () => {
         <div className="space-y-3">
           <button
             onClick={handleSignOut}
-            className="w-full py-4 px-6 bg-white border border-surface-200 text-surface-600 font-medium rounded-xl hover:bg-surface-50 transition-all"
+            className="w-full py-4 px-6 bg-zinc-800 border border-zinc-700 text-zinc-400 font-medium rounded-xl hover:bg-zinc-700 transition-all"
           >
             로그아웃
           </button>
@@ -378,7 +378,7 @@ const ProfilePage = () => {
       <BottomSheet isOpen={editModal === 'region'} onClose={closeEditModal} title="거주 지역 수정" maxHeight>
         {/* 1단계: 서울/경기 */}
         <div className="mb-4">
-          <p className="text-sm font-medium text-surface-700 mb-3">시/도</p>
+          <p className="text-sm font-medium text-zinc-300 mb-3">시/도</p>
           <div className="grid grid-cols-2 gap-3">
             {Object.entries(REGIONS).map(([key, region]) => (
               <button
@@ -386,8 +386,8 @@ const ProfilePage = () => {
                 onClick={() => { setEditRegionCity(key); setEditRegionDistrict('') }}
                 className={`py-4 px-4 rounded-xl border-2 font-semibold text-lg transition-all ${
                   editRegionCity === key
-                    ? 'border-primary-500 bg-primary-50 text-primary-700'
-                    : 'border-surface-200 bg-surface-50 text-surface-600'
+                    ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                    : 'border-zinc-700 bg-zinc-800 text-zinc-400'
                 }`}
               >
                 {region.label}
@@ -399,7 +399,7 @@ const ProfilePage = () => {
         {/* 2단계: 구/시 */}
         {editRegionCity && (
           <div className="mb-4">
-            <p className="text-sm font-medium text-surface-700 mb-3">구/시</p>
+            <p className="text-sm font-medium text-zinc-300 mb-3">구/시</p>
             <div className="flex flex-wrap gap-2 max-h-44 overflow-y-auto py-1">
               {REGIONS[editRegionCity].districts.map((district) => (
                 <button
@@ -407,8 +407,8 @@ const ProfilePage = () => {
                   onClick={() => setEditRegionDistrict(district)}
                   className={`py-2 px-3 rounded-full border-2 text-sm font-medium transition-all ${
                     editRegionDistrict === district
-                      ? 'border-primary-500 bg-primary-50 text-primary-700'
-                      : 'border-surface-200 bg-white text-surface-600'
+                      ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                      : 'border-zinc-700 bg-zinc-900 text-zinc-400'
                   }`}
                 >
                   {district}
@@ -419,8 +419,8 @@ const ProfilePage = () => {
         )}
 
         {editRegionCity && editRegionDistrict && (
-          <div className="p-3 bg-primary-50 rounded-xl text-center mb-4">
-            <p className="text-primary-700 font-medium">
+          <div className="p-3 bg-orange-500/10 rounded-xl text-center mb-4">
+            <p className="text-orange-400 font-medium">
               📍 {REGIONS[editRegionCity].label} {editRegionDistrict}
             </p>
           </div>
@@ -443,8 +443,8 @@ const ProfilePage = () => {
               onClick={() => setEditValue(type.value)}
               className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${
                 editValue === type.value
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-surface-200 bg-surface-50 text-surface-600'
+                  ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-400'
               }`}
             >
               <span className="text-xl mb-1 block">{type.icon}</span>
@@ -465,8 +465,8 @@ const ProfilePage = () => {
               onClick={() => setEditValue(mbti)}
               className={`py-3 px-2 rounded-xl border-2 font-medium text-sm transition-all ${
                 editValue === mbti
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-surface-200 bg-surface-50 text-surface-600'
+                  ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-400'
               }`}
             >
               {mbti}
@@ -486,8 +486,8 @@ const ProfilePage = () => {
               onClick={() => setEditValue(option.value)}
               className={`py-4 px-3 rounded-xl border-2 font-medium transition-all ${
                 editValue === option.value
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-surface-200 bg-surface-50 text-surface-600'
+                  ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-400'
               }`}
             >
               <span className="text-xl mb-1 block">{option.icon}</span>
@@ -508,8 +508,8 @@ const ProfilePage = () => {
               onClick={() => setEditValue(option.value)}
               className={`py-4 px-3 rounded-xl border-2 font-medium transition-all ${
                 editValue === option.value
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-surface-200 bg-surface-50 text-surface-600'
+                  ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                  : 'border-zinc-700 bg-zinc-800 text-zinc-400'
               }`}
             >
               <span className="text-xl mb-1 block">{option.icon}</span>
@@ -523,7 +523,7 @@ const ProfilePage = () => {
 
       {/* 수정 모달 - 관심사 */}
       <BottomSheet isOpen={editModal === 'interests'} onClose={closeEditModal} title="관심사 수정" maxHeight>
-        <p className="text-surface-500 text-sm mb-4">최소 1개, 최대 5개까지 선택 가능해요</p>
+        <p className="text-zinc-400 text-sm mb-4">최소 1개, 최대 5개까지 선택 가능해요</p>
         <div className="flex flex-wrap gap-3 mb-4">
           {INTEREST_OPTIONS.map((interest) => {
             const isSelected = editInterests.includes(interest.value)
@@ -535,10 +535,10 @@ const ProfilePage = () => {
                 disabled={isDisabled}
                 className={`py-3 px-4 rounded-full border-2 font-medium transition-all flex items-center gap-2 ${
                   isSelected
-                    ? 'border-primary-500 bg-primary-50 text-primary-700'
+                    ? 'border-orange-500 bg-orange-500/10 text-orange-400'
                     : isDisabled
-                    ? 'border-surface-200 bg-surface-100 text-surface-400 cursor-not-allowed'
-                    : 'border-surface-200 bg-surface-50 text-surface-600'
+                    ? 'border-zinc-800 bg-zinc-900 text-zinc-600 cursor-not-allowed'
+                    : 'border-zinc-700 bg-zinc-800 text-zinc-400'
                 }`}
               >
                 <span>{interest.icon}</span>
@@ -547,7 +547,7 @@ const ProfilePage = () => {
             )
           })}
         </div>
-        <p className="text-surface-500 text-sm text-center mb-4">{editInterests.length}/5 선택됨</p>
+        <p className="text-zinc-400 text-sm text-center mb-4">{editInterests.length}/5 선택됨</p>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <ModalButtons onCancel={closeEditModal} onSave={handleSave} disabled={editInterests.length < 1} />
       </BottomSheet>
@@ -561,16 +561,16 @@ const ProfilePage = () => {
               value={newPhone}
               onChange={(e) => setNewPhone(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="새 전화번호 입력"
-              className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
+              className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-4 transition-all"
               maxLength={11}
             />
             {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
             <div className="flex gap-3">
-              <button onClick={closeEditModal} className="flex-1 py-4 bg-surface-100 text-surface-600 font-medium rounded-xl">취소</button>
+              <button onClick={closeEditModal} className="flex-1 py-4 bg-zinc-800 text-zinc-400 font-medium rounded-xl">취소</button>
               <button
                 onClick={handlePhoneSendCode}
                 disabled={newPhone.length < 10}
-                className="flex-1 py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-xl disabled:opacity-50"
+                className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl disabled:bg-zinc-800 disabled:text-zinc-600 transition-all"
               >
                 인증번호 받기
               </button>
@@ -580,25 +580,25 @@ const ProfilePage = () => {
 
         {phoneStep === 'verify' && (
           <>
-            <p className="text-surface-500 text-sm mb-2">{newPhone}로 전송된 인증번호</p>
+            <p className="text-zinc-400 text-sm mb-2">{newPhone}로 전송된 인증번호</p>
             {SHOW_TEST_HINTS && (
-              <p className="text-accent-500 text-sm mb-4">테스트용 인증번호: {DUMMY_SMS_CODE}</p>
+              <p className="text-orange-400 text-sm mb-4">테스트용 인증번호: {DUMMY_SMS_CODE}</p>
             )}
             <input
               type="text"
               value={verifyCode}
               onChange={(e) => setVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="인증번호 4자리"
-              className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-center text-2xl tracking-[0.5em] placeholder:text-surface-400 placeholder:tracking-normal placeholder:text-base focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
+              className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white text-center text-2xl tracking-[0.5em] placeholder:text-zinc-500 placeholder:tracking-normal placeholder:text-base focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-4 transition-all"
               maxLength={4}
             />
             {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
             <div className="flex gap-3">
-              <button onClick={() => setPhoneStep('input')} className="flex-1 py-4 bg-surface-100 text-surface-600 font-medium rounded-xl">이전</button>
+              <button onClick={() => setPhoneStep('input')} className="flex-1 py-4 bg-zinc-800 text-zinc-400 font-medium rounded-xl">이전</button>
               <button
                 onClick={handlePhoneVerify}
                 disabled={saving || verifyCode.length < 4}
-                className="flex-1 py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-medium rounded-xl disabled:opacity-50"
+                className="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl disabled:bg-zinc-800 disabled:text-zinc-600 transition-all"
               >
                 {saving ? '변경 중...' : '변경하기'}
               </button>
@@ -615,9 +615,9 @@ const ProfilePage = () => {
           placeholder={'자기소개를 작성해주세요.\n\n이상형도 간단히 적어주시면 매칭에 도움이 됩니다!'}
           rows={6}
           maxLength={300}
-          className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2 resize-none"
+          className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-2 resize-none transition-all"
         />
-        <p className={`text-right text-xs mb-4 ${editValue.length < 10 ? 'text-red-500' : 'text-surface-400'}`}>
+        <p className={`text-right text-xs mb-4 ${editValue.length < 10 ? 'text-red-500' : 'text-zinc-500'}`}>
           {editValue.length}/300 (최소 10글자)
         </p>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -631,9 +631,9 @@ const ProfilePage = () => {
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
           placeholder="카카오톡 ID를 입력해주세요"
-          className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
+          className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-2 transition-all"
         />
-        <p className="text-surface-400 text-xs mb-4">
+        <p className="text-zinc-500 text-xs mb-4">
           매칭 성사 시 상대방에게 공개됩니다
         </p>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -647,28 +647,28 @@ const ProfilePage = () => {
         title="직장 인증"
       >
         <div className="space-y-4">
-          <div className="p-3 bg-primary-50 border border-primary-200 rounded-xl">
-            <p className="text-primary-700 text-sm">✨ 인증 시 매칭 점수 +15점 · 인증 뱃지 표시</p>
+          <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+            <p className="text-orange-400 text-sm">✨ 인증 시 매칭 점수 +15점 · 인증 뱃지 표시</p>
           </div>
 
           {!workCodeSent ? (
             <>
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">회사 이메일</label>
+                <label className="block text-sm font-medium text-zinc-300 mb-2">회사 이메일</label>
                 <input
                   type="email"
                   value={workEmail}
                   onChange={(e) => setWorkEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
-                <p className="text-surface-400 text-xs mt-1">gmail, naver 등 개인 이메일 불가</p>
+                <p className="text-zinc-500 text-xs mt-1">gmail, naver 등 개인 이메일 불가</p>
               </div>
               {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
               <button
                 onClick={handleWorkEmailSend}
                 disabled={!workEmail || workVerifyLoading}
-                className="w-full py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl disabled:opacity-50"
+                className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl disabled:bg-zinc-800 disabled:text-zinc-600 transition-all"
               >
                 {workVerifyLoading ? '전송 중...' : '인증코드 받기'}
               </button>
@@ -676,24 +676,24 @@ const ProfilePage = () => {
           ) : (
             <>
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">인증코드</label>
+                <label className="block text-sm font-medium text-zinc-300 mb-2">인증코드</label>
                 <input
                   type="text"
                   value={workVerifyCode}
                   onChange={(e) => setWorkVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="1234"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                   maxLength={4}
                 />
                 {SHOW_TEST_HINTS && (
-                  <p className="text-surface-400 text-xs mt-2 text-center">테스트용 인증코드: {DUMMY_SMS_CODE}</p>
+                  <p className="text-zinc-500 text-xs mt-2 text-center">테스트용 인증코드: {DUMMY_SMS_CODE}</p>
                 )}
               </div>
               {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
               <button
                 onClick={handleWorkVerifyCode}
                 disabled={workVerifyCode.length < 4 || workVerifyLoading}
-                className="w-full py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white font-semibold rounded-xl disabled:opacity-50"
+                className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl disabled:bg-zinc-800 disabled:text-zinc-600 transition-all"
               >
                 {workVerifyLoading ? '인증 중...' : '인증 완료'}
               </button>
@@ -705,7 +705,7 @@ const ProfilePage = () => {
               href={WORK_VERIFICATION_FORM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="block text-center text-primary-500 text-sm hover:text-primary-700"
+              className="block text-center text-orange-500 text-sm hover:text-orange-400 transition-colors"
             >
               회사 이메일이 없으신가요? → 서류 제출하기
             </a>

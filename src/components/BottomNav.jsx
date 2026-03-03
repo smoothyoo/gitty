@@ -7,11 +7,11 @@ const BottomNav = () => {
   const isProfile = location.pathname === '/profile'
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-surface-200 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 z-50">
       <div className="max-w-lg mx-auto px-6 py-3 flex items-center justify-around">
         <button
           onClick={() => navigate('/home')}
-          className={`flex flex-col items-center gap-1 ${isHome ? 'text-primary-500' : 'text-surface-400 hover:text-surface-600'}`}
+          className={`flex flex-col items-center gap-1 ${isHome ? 'text-orange-500' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
           {isHome ? (
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -26,7 +26,7 @@ const BottomNav = () => {
         </button>
         <button
           onClick={() => navigate('/profile')}
-          className={`flex flex-col items-center gap-1 ${isProfile ? 'text-primary-500' : 'text-surface-400 hover:text-surface-600'}`}
+          className={`flex flex-col items-center gap-1 ${isProfile ? 'text-orange-500' : 'text-zinc-500 hover:text-zinc-300'}`}
         >
           {isProfile ? (
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
