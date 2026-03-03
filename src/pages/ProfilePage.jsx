@@ -253,7 +253,7 @@ const ProfilePage = () => {
       <main className="max-w-lg mx-auto px-6 py-6">
         {/* Profile Card */}
         <div className="bg-zinc-800 rounded-3xl overflow-hidden mb-6">
-          <div className="bg-orange-500 px-6 py-8">
+          <div className="bg-gradient-to-br from-orange-500 to-orange-900 px-6 py-8">
             <div className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
               <span className="text-4xl">
                 {profile?.gender === 'male' ? '👨' : '👩'}
