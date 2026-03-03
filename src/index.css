@@ -41,6 +41,22 @@
   }
 }
 
+/* Marquee animation */
+@keyframes marquee-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.animate-marquee-left {
+  animation: marquee-left 20s linear infinite;
+}
+.animate-marquee-right {
+  animation: marquee-right 20s linear infinite;
+}
+
 /* Gradient animation */
 @keyframes gradient-shift {
   0%, 100% {
