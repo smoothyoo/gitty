@@ -240,22 +240,22 @@ const HomePage = () => {
             </div>
 
             <div className="grid grid-cols-3 gap-2 mb-4">
-              <div className="p-3 bg-zinc-700/50 rounded-xl text-center">
+              <div className="p-3 bg-zinc-800/80 rounded-xl text-center">
                 <p className="text-zinc-500 text-xs mb-1">MBTI</p>
                 <p className="text-white font-medium">{matchedUser?.mbti || '-'}</p>
               </div>
-              <div className="p-3 bg-zinc-700/50 rounded-xl text-center">
+              <div className="p-3 bg-zinc-800/80 rounded-xl text-center">
                 <p className="text-zinc-500 text-xs mb-1">흡연</p>
                 <p className="text-white font-medium">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
               </div>
-              <div className="p-3 bg-zinc-700/50 rounded-xl text-center">
+              <div className="p-3 bg-zinc-800/80 rounded-xl text-center">
                 <p className="text-zinc-500 text-xs mb-1">음주</p>
                 <p className="text-white font-medium">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
               </div>
             </div>
 
             {matchedUser?.interests && (
-              <div className="p-4 bg-zinc-700/50 rounded-xl mb-4">
+              <div className="p-4 bg-zinc-800/80 rounded-xl mb-4">
                 <p className="text-zinc-500 text-xs mb-2">관심사</p>
                 <div className="flex flex-wrap gap-2">
                   {parseInterests(matchedUser.interests).map((interest) => (
@@ -334,17 +334,15 @@ const HomePage = () => {
 
     // 응답 대기 중 (waiting 상태)
     return (
-      <div className="bg-zinc-800 rounded-3xl overflow-hidden">
-        <div className="bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <span className="text-white/90 text-sm font-medium">오늘의 인연</span>
-            <span className="bg-black/20 text-white text-xs px-3 py-1 rounded-full">
-              {getTimeRemaining() || '응답 대기 중'}
-            </span>
-          </div>
+      <div className="bg-zinc-800 rounded-3xl overflow-hidden border border-zinc-700 border-t-2 border-t-orange-500">
+        <div className="px-6 pt-5 pb-2 flex items-center justify-between">
+          <span className="text-orange-400 text-xs font-semibold uppercase tracking-wider">오늘의 인연</span>
+          <span className="bg-zinc-700 text-zinc-400 text-xs px-3 py-1 rounded-full">
+            {getTimeRemaining() || '응답 대기 중'}
+          </span>
         </div>
 
-        <div className="p-6">
+        <div className="px-6 pb-6 pt-2">
           <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
             <span className="text-3xl">
               {matchedUser?.gender === 'male' ? '👨' : '👩'}
@@ -368,8 +366,8 @@ const HomePage = () => {
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-zinc-700/60 rounded-xl">
-              <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 py-3 border-b border-zinc-700/60">
+              <div className="w-8 h-8 bg-zinc-700 rounded-lg flex items-center justify-center">
                 <span>📍</span>
               </div>
               <div>
@@ -378,8 +376,8 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-zinc-700/60 rounded-xl">
-              <div className="w-10 h-10 bg-orange-500/15 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 py-3 border-b border-zinc-700/60">
+              <div className="w-8 h-8 bg-zinc-700 rounded-lg flex items-center justify-center">
                 <span>💼</span>
               </div>
               <div>
@@ -388,8 +386,8 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-zinc-700/60 rounded-xl">
-              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 py-3 border-b border-zinc-700/60">
+              <div className="w-8 h-8 bg-zinc-700 rounded-lg flex items-center justify-center">
                 <span>🏢</span>
               </div>
               <div>
@@ -399,22 +397,22 @@ const HomePage = () => {
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              <div className="p-3 bg-zinc-700/60 rounded-xl text-center">
+              <div className="p-3 bg-zinc-800/80 rounded-xl text-center">
                 <p className="text-zinc-500 text-xs mb-1">MBTI</p>
                 <p className="text-white font-medium text-sm">{matchedUser?.mbti || '-'}</p>
               </div>
-              <div className="p-3 bg-zinc-700/60 rounded-xl text-center">
+              <div className="p-3 bg-zinc-800/80 rounded-xl text-center">
                 <p className="text-zinc-500 text-xs mb-1">흡연</p>
                 <p className="text-white font-medium text-sm">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
               </div>
-              <div className="p-3 bg-zinc-700/60 rounded-xl text-center">
+              <div className="p-3 bg-zinc-800/80 rounded-xl text-center">
                 <p className="text-zinc-500 text-xs mb-1">음주</p>
                 <p className="text-white font-medium text-sm">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
               </div>
             </div>
 
             {matchedUser?.interests && (
-              <div className="p-4 bg-zinc-700/60 rounded-xl">
+              <div className="p-4 bg-zinc-800/80 rounded-xl">
                 <p className="text-zinc-500 text-xs mb-2">관심사</p>
                 <div className="flex flex-wrap gap-2">
                   {parseInterests(matchedUser.interests).map((interest) => (
@@ -430,7 +428,7 @@ const HomePage = () => {
             )}
 
             {matchedUser?.bio && (
-              <div className="p-4 bg-zinc-700/60 rounded-xl">
+              <div className="p-4 bg-zinc-800/80 rounded-xl">
                 <p className="text-zinc-500 text-xs mb-2">자기소개</p>
                 <p className="text-zinc-300 text-sm leading-relaxed">{matchedUser.bio}</p>
               </div>
