@@ -306,29 +306,30 @@ const SignupPage = () => {
   // ─── 렌더 ───────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-surface-50">
+    <div className="min-h-screen bg-zinc-950">
       {/* Header */}
-      <header className="sticky top-0 bg-surface-50/80 backdrop-blur-lg border-b border-surface-200 z-50">
-        <div className="max-w-lg mx-auto px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 bg-zinc-950/80 backdrop-blur-lg border-b border-zinc-800 z-50">
+        <div className="max-w-lg mx-auto px-6 py-3 flex items-center justify-between">
           {step !== STEPS.WORK_VERIFY ? (
-            <button onClick={goBack} className="p-2 -ml-2 hover:bg-surface-100 rounded-lg transition-colors">
-              <svg className="w-6 h-6 text-surface-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onClick={goBack} className="p-2 -ml-2 hover:bg-zinc-800 rounded-lg transition-colors">
+              <svg className="w-6 h-6 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           ) : <div className="w-10" />}
-          {step !== STEPS.WORK_VERIFY && (
-            <button onClick={() => navigate('/')} className="text-surface-500 hover:text-surface-700">
+          <img src="/Gitty2.png" alt="GITTY" className="h-8 w-auto" />
+          {step !== STEPS.WORK_VERIFY ? (
+            <button onClick={() => navigate('/')} className="text-zinc-500 hover:text-zinc-300 transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          )}
+          ) : <div className="w-10" />}
         </div>
         {step !== STEPS.WORK_VERIFY && (
-          <div className="h-1 bg-surface-200">
+          <div className="h-1 bg-zinc-800">
             <div
-              className="h-full bg-gradient-to-r from-primary-500 to-accent-500 transition-all duration-500"
+              className="h-full bg-orange-500 transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -341,22 +342,22 @@ const SignupPage = () => {
         {step === STEPS.PHONE && (
           <form onSubmit={handlePhoneSubmit} className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-surface-900 mb-2">전화번호를 입력해주세요</h1>
-              <p className="text-surface-500">본인 인증을 위해 사용됩니다</p>
+              <h1 className="text-2xl font-bold text-white mb-2">전화번호를 입력해주세요</h1>
+              <p className="text-zinc-500">본인 인증을 위해 사용됩니다</p>
             </div>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="01012345678"
-              className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-lg placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               maxLength={11}
             />
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
               type="submit"
               disabled={loading || phone.length < 10}
-              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
               {loading ? '전송 중...' : '인증번호 받기'}
             </button>
@@ -367,8 +368,8 @@ const SignupPage = () => {
         {step === STEPS.VERIFY && (
           <form onSubmit={handleVerifySubmit} className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-surface-900 mb-2">인증번호를 입력해주세요</h1>
-              <p className="text-surface-500">{phone}로 전송된 인증번호 4자리</p>
+              <h1 className="text-2xl font-bold text-white mb-2">인증번호를 입력해주세요</h1>
+              <p className="text-zinc-500">{phone}로 전송된 인증번호 4자리</p>
             </div>
             <div>
               <input
@@ -376,18 +377,18 @@ const SignupPage = () => {
                 value={verifyCode}
                 onChange={(e) => setVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
                 placeholder="1234"
-                className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 maxLength={4}
               />
               {SHOW_TEST_HINTS && (
-                <p className="text-surface-400 text-xs mt-2 text-center">테스트용 인증번호: {DUMMY_SMS_CODE}</p>
+                <p className="text-orange-400 text-xs mt-2 text-center">테스트용 인증번호: {DUMMY_SMS_CODE}</p>
               )}
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
               type="submit"
               disabled={verifyCode.length < 4}
-              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
               확인
             </button>
@@ -398,22 +399,22 @@ const SignupPage = () => {
         {step === STEPS.BASIC_INFO && (
           <form onSubmit={handleBasicInfoSubmit} className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-surface-900 mb-2">기본 정보를 알려주세요</h1>
-              <p className="text-surface-500">매칭을 위해 필요한 정보예요</p>
+              <h1 className="text-2xl font-bold text-white mb-2">기본 정보를 알려주세요</h1>
+              <p className="text-zinc-500">매칭을 위해 필요한 정보예요</p>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">이름</label>
+                <label className="block text-sm font-medium text-zinc-400 mb-2">이름</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="실명을 입력해주세요"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">성별</label>
+                <label className="block text-sm font-medium text-zinc-400 mb-2">성별</label>
                 <div className="grid grid-cols-2 gap-3">
                   {[{ value: 'male', label: '남성', icon: '👨' }, { value: 'female', label: '여성', icon: '👩' }].map((opt) => (
                     <button
@@ -422,8 +423,8 @@ const SignupPage = () => {
                       onClick={() => setFormData({ ...formData, gender: opt.value })}
                       className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
                         formData.gender === opt.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                       }`}
                     >
                       <span className="text-2xl mb-1 block">{opt.icon}</span>
@@ -433,7 +434,7 @@ const SignupPage = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-2">출생연도</label>
+                <label className="block text-sm font-medium text-zinc-400 mb-2">출생연도</label>
                 <input
                   type="number"
                   value={formData.birthYear}
@@ -441,12 +442,12 @@ const SignupPage = () => {
                   placeholder="1995"
                   min="1960"
                   max="2006"
-                  className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button type="submit" className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300">
+            <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300">
               다음으로
             </button>
           </form>
@@ -456,13 +457,13 @@ const SignupPage = () => {
         {step === STEPS.REGION && (
           <form onSubmit={handleRegionSubmit} className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-surface-900 mb-2">거주 지역을 선택해주세요</h1>
-              <p className="text-surface-500">가까운 곳에 사는 분과 매칭될 확률이 높아요</p>
+              <h1 className="text-2xl font-bold text-white mb-2">거주 지역을 선택해주세요</h1>
+              <p className="text-zinc-500">가까운 곳에 사는 분과 매칭될 확률이 높아요</p>
             </div>
 
             {/* 1단계: 서울 / 경기 */}
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-3">시/도</label>
+              <label className="block text-sm font-medium text-zinc-400 mb-3">시/도</label>
               <div className="grid grid-cols-2 gap-3">
                 {Object.entries(REGIONS).map(([key, region]) => (
                   <button
@@ -471,8 +472,8 @@ const SignupPage = () => {
                     onClick={() => setFormData({ ...formData, regionCity: key, regionDistrict: '' })}
                     className={`py-5 px-4 rounded-xl border-2 font-semibold text-lg transition-all ${
                       formData.regionCity === key
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                        ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                        : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                     }`}
                   >
                     {region.label}
@@ -484,7 +485,7 @@ const SignupPage = () => {
             {/* 2단계: 구/시 선택 */}
             {formData.regionCity && (
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-3">
+                <label className="block text-sm font-medium text-zinc-400 mb-3">
                   구/시 선택
                 </label>
                 <div className="flex flex-wrap gap-2 max-h-56 overflow-y-auto py-1">
@@ -495,8 +496,8 @@ const SignupPage = () => {
                       onClick={() => setFormData({ ...formData, regionDistrict: district })}
                       className={`py-2 px-4 rounded-full border-2 text-sm font-medium transition-all ${
                         formData.regionDistrict === district
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-surface-200 bg-white text-surface-600 hover:border-surface-300'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                       }`}
                     >
                       {district}
@@ -507,8 +508,8 @@ const SignupPage = () => {
             )}
 
             {formData.regionCity && formData.regionDistrict && (
-              <div className="p-3 bg-primary-50 rounded-xl text-center">
-                <p className="text-primary-700 font-medium">
+              <div className="p-3 bg-orange-500/10 rounded-xl text-center">
+                <p className="text-orange-400 font-medium">
                   📍 {REGIONS[formData.regionCity].label} {formData.regionDistrict}
                 </p>
               </div>
@@ -518,7 +519,7 @@ const SignupPage = () => {
             <button
               type="submit"
               disabled={!formData.regionCity || !formData.regionDistrict}
-              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
               다음으로
             </button>
@@ -529,13 +530,13 @@ const SignupPage = () => {
         {step === STEPS.LIFESTYLE && (
           <form onSubmit={handleLifestyleSubmit} className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-surface-900 mb-2">라이프스타일을 알려주세요</h1>
-              <p className="text-surface-500">나와 맞는 사람을 찾는 데 도움이 돼요</p>
+              <h1 className="text-2xl font-bold text-white mb-2">라이프스타일을 알려주세요</h1>
+              <p className="text-zinc-500">나와 맞는 사람을 찾는 데 도움이 돼요</p>
             </div>
             <div className="space-y-6">
               {/* MBTI */}
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-3">MBTI</label>
+                <label className="block text-sm font-medium text-zinc-400 mb-3">MBTI</label>
                 <div className="grid grid-cols-4 gap-2">
                   {MBTI_TYPES.map((mbti) => (
                     <button
@@ -544,8 +545,8 @@ const SignupPage = () => {
                       onClick={() => setFormData({ ...formData, mbti })}
                       className={`py-3 px-2 rounded-xl border-2 font-medium text-sm transition-all ${
                         formData.mbti === mbti
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                       }`}
                     >
                       {mbti}
@@ -556,7 +557,7 @@ const SignupPage = () => {
 
               {/* 흡연 */}
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-3">흡연 여부</label>
+                <label className="block text-sm font-medium text-zinc-400 mb-3">흡연 여부</label>
                 <div className="grid grid-cols-3 gap-3">
                   {SMOKING_OPTIONS.map((opt) => (
                     <button
@@ -565,8 +566,8 @@ const SignupPage = () => {
                       onClick={() => setFormData({ ...formData, smoking: opt.value })}
                       className={`py-4 px-3 rounded-xl border-2 font-medium transition-all ${
                         formData.smoking === opt.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                       }`}
                     >
                       <span className="text-xl mb-1 block">{opt.icon}</span>
@@ -578,7 +579,7 @@ const SignupPage = () => {
 
               {/* 음주 */}
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-3">음주 여부</label>
+                <label className="block text-sm font-medium text-zinc-400 mb-3">음주 여부</label>
                 <div className="grid grid-cols-3 gap-3">
                   {DRINKING_OPTIONS.map((opt) => (
                     <button
@@ -587,8 +588,8 @@ const SignupPage = () => {
                       onClick={() => setFormData({ ...formData, drinking: opt.value })}
                       className={`py-4 px-3 rounded-xl border-2 font-medium transition-all ${
                         formData.drinking === opt.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                       }`}
                     >
                       <span className="text-xl mb-1 block">{opt.icon}</span>
@@ -600,7 +601,7 @@ const SignupPage = () => {
 
               {/* 직장 유형 */}
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-3">직장 유형</label>
+                <label className="block text-sm font-medium text-zinc-400 mb-3">직장 유형</label>
                 <div className="grid grid-cols-2 gap-3">
                   {WORK_TYPES.map((type) => (
                     <button
@@ -609,8 +610,8 @@ const SignupPage = () => {
                       onClick={() => setFormData({ ...formData, workType: type.value })}
                       className={`py-4 px-4 rounded-xl border-2 font-medium transition-all text-left ${
                         formData.workType === type.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
-                          : 'border-surface-200 bg-surface-50 text-surface-600 hover:border-surface-300'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                       }`}
                     >
                       <span className="text-xl mb-1 block">{type.icon}</span>
@@ -621,7 +622,7 @@ const SignupPage = () => {
               </div>
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <button type="submit" className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300">
+            <button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300">
               다음으로
             </button>
           </form>
@@ -631,14 +632,14 @@ const SignupPage = () => {
         {step === STEPS.INTERESTS_PROFILE && (
           <form onSubmit={handleInterestsProfileSubmit} className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-surface-900 mb-2">나를 소개해주세요</h1>
-              <p className="text-surface-500">관심사와 자기소개로 좋은 인연을 만나요</p>
+              <h1 className="text-2xl font-bold text-white mb-2">나를 소개해주세요</h1>
+              <p className="text-zinc-500">관심사와 자기소개로 좋은 인연을 만나요</p>
             </div>
 
             {/* 관심사 */}
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-3">
-                관심사 <span className="text-surface-400 font-normal">(최소 1개, 최대 5개)</span>
+              <label className="block text-sm font-medium text-zinc-400 mb-3">
+                관심사 <span className="text-zinc-600 font-normal">(최소 1개, 최대 5개)</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {INTEREST_OPTIONS.map((interest) => {
@@ -652,10 +653,10 @@ const SignupPage = () => {
                       disabled={isDisabled}
                       className={`py-2 px-4 rounded-full border-2 font-medium transition-all flex items-center gap-1.5 text-sm ${
                         isSelected
-                          ? 'border-primary-500 bg-primary-50 text-primary-700'
+                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
                           : isDisabled
-                          ? 'border-surface-200 bg-surface-100 text-surface-400 cursor-not-allowed'
-                          : 'border-surface-200 bg-white text-surface-600 hover:border-surface-300'
+                          ? 'border-zinc-800 bg-zinc-800/50 text-zinc-600 cursor-not-allowed'
+                          : 'border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
                       }`}
                     >
                       <span>{interest.icon}</span>
@@ -664,23 +665,23 @@ const SignupPage = () => {
                   )
                 })}
               </div>
-              <p className="text-surface-400 text-xs mt-2 text-right">{formData.interests.length}/5 선택됨</p>
+              <p className="text-zinc-600 text-xs mt-2 text-right">{formData.interests.length}/5 선택됨</p>
             </div>
 
             {/* 자기소개 */}
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-2">
-                자기소개 <span className="text-primary-500">*</span>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">
+                자기소개 <span className="text-orange-500">*</span>
               </label>
               {/* 가이드 칩 (가로 스크롤) */}
-              <p className="text-xs text-surface-500 mb-2">💡 자기소개에 쓰면 좋은 주제</p>
+              <p className="text-xs text-zinc-500 mb-2">💡 자기소개에 쓰면 좋은 주제</p>
               <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
                 {BIO_GUIDES.map((guide) => (
                   <button
                     key={guide.label}
                     type="button"
                     onClick={() => setBioPlaceholder(guide.placeholder)}
-                    className="flex-shrink-0 py-1.5 px-3 rounded-full border border-surface-300 bg-white text-surface-600 text-xs font-medium hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-all flex items-center gap-1"
+                    className="flex-shrink-0 py-1.5 px-3 rounded-full border border-zinc-700 bg-zinc-900 text-zinc-500 text-xs font-medium hover:border-orange-500 hover:text-orange-400 transition-all flex items-center gap-1"
                   >
                     <span>{guide.icon}</span>
                     <span>{guide.label}</span>
@@ -693,33 +694,33 @@ const SignupPage = () => {
                 placeholder={bioPlaceholder}
                 rows={5}
                 maxLength={300}
-                className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all resize-none"
+                className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
               />
-              <p className={`text-right text-xs mt-1 ${formData.bio.length < 10 ? 'text-red-500' : 'text-surface-400'}`}>
+              <p className={`text-right text-xs mt-1 ${formData.bio.length < 10 ? 'text-red-500' : 'text-zinc-600'}`}>
                 {formData.bio.length}/300 (최소 10글자)
               </p>
             </div>
 
             {/* 카카오톡 ID */}
             <div>
-              <label className="block text-sm font-medium text-surface-700 mb-2">
-                카카오톡 ID <span className="text-primary-500">*</span>
+              <label className="block text-sm font-medium text-zinc-400 mb-2">
+                카카오톡 ID <span className="text-orange-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.kakaoId}
                 onChange={(e) => setFormData({ ...formData, kakaoId: e.target.value })}
                 placeholder="카카오톡 ID를 입력해주세요"
-                className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               />
-              <p className="text-surface-400 text-xs mt-2">서로 매칭이 성사되면 카카오톡 ID가 공개됩니다</p>
+              <p className="text-zinc-600 text-xs mt-2">서로 매칭이 성사되면 카카오톡 ID가 공개됩니다</p>
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
               type="submit"
               disabled={formData.interests.length < 1 || !formData.kakaoId || formData.bio.length < 10}
-              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
               다음으로
             </button>
@@ -730,26 +731,26 @@ const SignupPage = () => {
         {step === STEPS.AGREEMENT && (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-surface-900 mb-2">약관에 동의해주세요</h1>
-              <p className="text-surface-500">서비스 이용을 위해 필요해요</p>
+              <h1 className="text-2xl font-bold text-white mb-2">약관에 동의해주세요</h1>
+              <p className="text-zinc-500">서비스 이용을 위해 필요해요</p>
             </div>
             <div className="space-y-3">
               <button
                 onClick={() => handleAgreementChange('all')}
                 className={`w-full p-4 rounded-xl border-2 flex items-center gap-3 transition-all ${
-                  agreements.all ? 'border-primary-500 bg-primary-50' : 'border-surface-200 bg-surface-50'
+                  agreements.all ? 'border-orange-500 bg-orange-500/10' : 'border-zinc-700 bg-zinc-900'
                 }`}
               >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${agreements.all ? 'bg-primary-500' : 'bg-surface-300'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${agreements.all ? 'bg-orange-500' : 'bg-zinc-700'}`}>
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className={`font-semibold ${agreements.all ? 'text-primary-700' : 'text-surface-700'}`}>
+                <span className={`font-semibold ${agreements.all ? 'text-orange-400' : 'text-zinc-300'}`}>
                   모두 동의합니다
                 </span>
               </button>
-              <div className="border-t border-surface-200 my-4" />
+              <div className="border-t border-zinc-800 my-4" />
               {[
                 { key: 'age', label: '(필수) 만 18세 이상입니다' },
                 { key: 'terms', label: '(필수) 서비스 이용약관 동의' },
@@ -759,14 +760,14 @@ const SignupPage = () => {
                 <button
                   key={item.key}
                   onClick={() => handleAgreementChange(item.key)}
-                  className="w-full p-4 rounded-xl flex items-center gap-3 hover:bg-surface-100 transition-all"
+                  className="w-full p-4 rounded-xl flex items-center gap-3 hover:bg-zinc-800 transition-all"
                 >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${agreements[item.key] ? 'bg-primary-500' : 'bg-surface-300'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${agreements[item.key] ? 'bg-orange-500' : 'bg-zinc-700'}`}>
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className={`text-sm ${agreements[item.key] ? 'text-surface-900' : 'text-surface-600'}`}>
+                  <span className={`text-sm ${agreements[item.key] ? 'text-white' : 'text-zinc-500'}`}>
                     {item.label}
                   </span>
                 </button>
@@ -776,7 +777,7 @@ const SignupPage = () => {
             <button
               onClick={handleFinalSubmit}
               disabled={loading || !agreements.age || !agreements.terms || !agreements.privacy}
-              className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
               {loading ? '가입 중...' : '가입 완료'}
             </button>
@@ -788,32 +789,32 @@ const SignupPage = () => {
           <div className="space-y-6">
             {workVerified ? (
               <div className="text-center py-12">
-                <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-4 bg-green-500/15 rounded-full flex items-center justify-center">
                   <span className="text-4xl">✅</span>
                 </div>
-                <h2 className="text-xl font-bold text-surface-900 mb-2">직장 인증 완료!</h2>
-                <p className="text-surface-500 text-sm">매칭 확률이 높아졌어요 🎉</p>
-                <p className="text-surface-400 text-xs mt-2">잠시 후 홈으로 이동합니다...</p>
+                <h2 className="text-xl font-bold text-white mb-2">직장 인증 완료!</h2>
+                <p className="text-zinc-400 text-sm">매칭 확률이 높아졌어요 🎉</p>
+                <p className="text-zinc-600 text-xs mt-2">잠시 후 홈으로 이동합니다...</p>
               </div>
             ) : (
               <>
                 <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-primary-100 to-accent-100 rounded-2xl flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-orange-500/15 rounded-2xl flex items-center justify-center">
                     <span className="text-3xl">🏢</span>
                   </div>
-                  <h1 className="text-2xl font-bold text-surface-900 mb-2">직장 인증하기</h1>
-                  <p className="text-surface-500 text-sm">
+                  <h1 className="text-2xl font-bold text-white mb-2">직장 인증하기</h1>
+                  <p className="text-zinc-400 text-sm">
                     인증하면 매칭 확률이 올라가고<br />
                     인증 뱃지가 프로필에 표시돼요
                   </p>
                 </div>
 
-                <div className="p-4 bg-primary-50 border border-primary-200 rounded-xl">
+                <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl">
                   <div className="flex items-start gap-3">
                     <span className="text-xl">✨</span>
                     <div>
-                      <p className="text-primary-700 font-medium text-sm">인증 혜택</p>
-                      <p className="text-primary-600 text-xs mt-1">매칭 알고리즘 가산점 +15점 · 인증 뱃지 표시</p>
+                      <p className="text-orange-400 font-medium text-sm">인증 혜택</p>
+                      <p className="text-orange-400/70 text-xs mt-1">매칭 알고리즘 가산점 +15점 · 인증 뱃지 표시</p>
                     </div>
                   </div>
                 </div>
@@ -822,21 +823,21 @@ const SignupPage = () => {
                   {!workCodeSent ? (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-surface-700 mb-2">회사 이메일</label>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">회사 이메일</label>
                         <input
                           type="email"
                           value={workEmail}
                           onChange={(e) => setWorkEmail(e.target.value)}
                           placeholder="name@company.com"
-                          className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                          className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                         />
-                        <p className="text-surface-400 text-xs mt-1">gmail, naver 등 개인 이메일은 사용 불가</p>
+                        <p className="text-zinc-600 text-xs mt-1">gmail, naver 등 개인 이메일은 사용 불가</p>
                       </div>
                       {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
                       <button
                         onClick={handleWorkEmailSend}
                         disabled={!workEmail || workVerifyLoading}
-                        className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+                        className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
                       >
                         {workVerifyLoading ? '전송 중...' : '인증코드 받기'}
                       </button>
@@ -844,26 +845,26 @@ const SignupPage = () => {
                   ) : (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-surface-700 mb-2">
-                          인증코드 <span className="text-surface-400 font-normal">({workEmail})</span>
+                        <label className="block text-sm font-medium text-zinc-400 mb-2">
+                          인증코드 <span className="text-zinc-600 font-normal">({workEmail})</span>
                         </label>
                         <input
                           type="text"
                           value={workVerifyCode}
                           onChange={(e) => setWorkVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
                           placeholder="1234"
-                          className="w-full px-4 py-4 bg-surface-100 border border-surface-200 rounded-xl text-surface-900 text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                          className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                           maxLength={4}
                         />
                         {SHOW_TEST_HINTS && (
-                          <p className="text-surface-400 text-xs mt-2 text-center">테스트용 인증코드: {DUMMY_SMS_CODE}</p>
+                          <p className="text-orange-400 text-xs mt-2 text-center">테스트용 인증코드: {DUMMY_SMS_CODE}</p>
                         )}
                       </div>
                       {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
                       <button
                         onClick={handleWorkVerifyCode}
                         disabled={workVerifyCode.length < 4 || workVerifyLoading}
-                        className="w-full bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 disabled:from-surface-300 disabled:to-surface-300 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
+                        className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
                       >
                         {workVerifyLoading ? '인증 중...' : '인증 완료'}
                       </button>
@@ -874,7 +875,7 @@ const SignupPage = () => {
                 <div className="flex flex-col items-center gap-3 pt-2">
                   <button
                     onClick={() => navigate('/home')}
-                    className="text-surface-500 text-sm hover:text-surface-700 underline"
+                    className="text-zinc-500 text-sm hover:text-zinc-300 underline transition-colors"
                   >
                     나중에 인증할게요 (건너뛰기)
                   </button>
@@ -883,7 +884,7 @@ const SignupPage = () => {
                       href={WORK_VERIFICATION_FORM_URL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary-500 text-sm hover:text-primary-700"
+                      className="text-orange-500 text-sm hover:text-orange-400 transition-colors"
                     >
                       회사 이메일이 없으신가요? → 서류 제출하기
                     </a>

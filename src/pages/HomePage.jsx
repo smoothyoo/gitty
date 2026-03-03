@@ -26,9 +26,8 @@ const HomePage = () => {
 
   const fetchCurrentMatch = async () => {
     try {
-      // 이번 주 월요일 계산 (주간 매칭 기준)
       const now = new Date()
-      const dayOfWeek = now.getDay() // 0=일, 1=월, ..., 6=토
+      const dayOfWeek = now.getDay()
       const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
       const weekStart = new Date(now)
       weekStart.setDate(now.getDate() - daysFromMonday)
@@ -81,7 +80,6 @@ const HomePage = () => {
         return
       }
 
-      // 유저 ID를 모아서 한 번에 조회 (N+1 -> 2 쿼리)
       const otherUserIds = [...new Set(
         matches.map(m => m.user_a === user.id ? m.user_b : m.user_a)
       )]
@@ -174,14 +172,14 @@ const HomePage = () => {
   const renderMatchStatus = () => {
     if (!currentMatch) {
       return (
-        <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-4 bg-surface-100 rounded-full flex items-center justify-center">
+        <div className="bg-zinc-800 rounded-3xl p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
             <span className="text-4xl">💝</span>
           </div>
-          <h2 className="text-xl font-bold text-surface-900 mb-2">
+          <h2 className="text-xl font-bold text-white mb-2">
             매칭 준비 중이에요
           </h2>
-          <p className="text-surface-500 text-sm">
+          <p className="text-zinc-400 text-sm">
             내일 오후 1시에 매칭 상대가 공개돼요!
             <br />
             조금만 기다려주세요
@@ -197,7 +195,7 @@ const HomePage = () => {
     // 매칭 성사
     if (status === 'matched') {
       return (
-        <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 overflow-hidden">
+        <div className="bg-zinc-800 rounded-3xl overflow-hidden">
           <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4">
             <div className="flex items-center justify-center gap-2">
               <span className="text-2xl">🎉</span>
@@ -207,63 +205,63 @@ const HomePage = () => {
           </div>
 
           <div className="p-6">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-surface-200 to-surface-300 rounded-full flex items-center justify-center">
+            <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
               <span className="text-3xl">
                 {matchedUser?.gender === 'male' ? '👨' : '👩'}
               </span>
             </div>
 
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-surface-900 mb-1">
+              <h2 className="text-xl font-bold text-white mb-1">
                 {matchedUser?.name} 님
               </h2>
               <div className="flex items-center justify-center gap-2">
-                <p className="text-surface-500 text-sm">
+                <p className="text-zinc-400 text-sm">
                   {matchedUser?.birth_year ? `${new Date().getFullYear() - matchedUser.birth_year + 1}세` : ''} · {matchedUser?.gender === 'male' ? '남성' : '여성'}
                 </p>
                 {matchedUser?.work_verified && (
-                  <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                  <span className="inline-flex items-center gap-1 bg-blue-500/15 text-blue-400 text-xs px-2 py-0.5 rounded-full font-medium">
                     ✅ 직장인증
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="p-4 bg-gradient-to-r from-yellow-50 to-yellow-100 border border-yellow-200 rounded-xl mb-4">
+            <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-yellow-400 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center">
                   <span className="text-2xl">💬</span>
                 </div>
                 <div>
-                  <p className="text-yellow-800 text-xs font-medium">카카오톡으로 연락해보세요!</p>
-                  <p className="text-yellow-900 font-bold text-xl">{matchedUser?.kakao_id || '미등록'}</p>
+                  <p className="text-yellow-400 text-xs font-medium">카카오톡으로 연락해보세요!</p>
+                  <p className="text-yellow-300 font-bold text-xl">{matchedUser?.kakao_id || '미등록'}</p>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2 mb-4">
-              <div className="p-3 bg-surface-50 rounded-xl text-center">
-                <p className="text-surface-500 text-xs mb-1">MBTI</p>
-                <p className="text-surface-900 font-medium">{matchedUser?.mbti || '-'}</p>
+              <div className="p-3 bg-zinc-700/50 rounded-xl text-center">
+                <p className="text-zinc-500 text-xs mb-1">MBTI</p>
+                <p className="text-white font-medium">{matchedUser?.mbti || '-'}</p>
               </div>
-              <div className="p-3 bg-surface-50 rounded-xl text-center">
-                <p className="text-surface-500 text-xs mb-1">흡연</p>
-                <p className="text-surface-900 font-medium">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
+              <div className="p-3 bg-zinc-700/50 rounded-xl text-center">
+                <p className="text-zinc-500 text-xs mb-1">흡연</p>
+                <p className="text-white font-medium">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
               </div>
-              <div className="p-3 bg-surface-50 rounded-xl text-center">
-                <p className="text-surface-500 text-xs mb-1">음주</p>
-                <p className="text-surface-900 font-medium">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
+              <div className="p-3 bg-zinc-700/50 rounded-xl text-center">
+                <p className="text-zinc-500 text-xs mb-1">음주</p>
+                <p className="text-white font-medium">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
               </div>
             </div>
 
             {matchedUser?.interests && (
-              <div className="p-4 bg-surface-50 rounded-xl mb-4">
-                <p className="text-surface-500 text-xs mb-2">관심사</p>
+              <div className="p-4 bg-zinc-700/50 rounded-xl mb-4">
+                <p className="text-zinc-500 text-xs mb-2">관심사</p>
                 <div className="flex flex-wrap gap-2">
                   {parseInterests(matchedUser.interests).map((interest) => (
                     <span
                       key={interest}
-                      className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs"
+                      className="px-2 py-1 bg-orange-500/15 text-orange-400 rounded-full text-xs"
                     >
                       {INTEREST_LABELS[interest] || interest}
                     </span>
@@ -273,9 +271,9 @@ const HomePage = () => {
             )}
 
             {matchedUser?.bio && (
-              <div className="p-4 bg-surface-50 rounded-xl">
-                <p className="text-surface-500 text-xs mb-2">자기소개</p>
-                <p className="text-surface-700 text-sm leading-relaxed">{matchedUser.bio}</p>
+              <div className="p-4 bg-zinc-700/50 rounded-xl">
+                <p className="text-zinc-500 text-xs mb-2">자기소개</p>
+                <p className="text-zinc-300 text-sm leading-relaxed">{matchedUser.bio}</p>
               </div>
             )}
           </div>
@@ -299,14 +297,14 @@ const HomePage = () => {
       }
 
       return (
-        <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-4 bg-surface-100 rounded-full flex items-center justify-center">
+        <div className="bg-zinc-800 rounded-3xl p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
             <span className="text-4xl">😢</span>
           </div>
-          <h2 className="text-xl font-bold text-surface-900 mb-2">
+          <h2 className="text-xl font-bold text-white mb-2">
             {rejectionTitle}
           </h2>
-          <p className="text-surface-500 text-sm">
+          <p className="text-zinc-400 text-sm">
             {rejectionDesc}
             <br />
             내일 오후 1시에 새로운 분을 소개해드릴게요
@@ -318,14 +316,14 @@ const HomePage = () => {
     // 매칭 상대 없음
     if (status === 'no_match') {
       return (
-        <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-4 bg-surface-100 rounded-full flex items-center justify-center">
+        <div className="bg-zinc-800 rounded-3xl p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
             <span className="text-4xl">😢</span>
           </div>
-          <h2 className="text-xl font-bold text-surface-900 mb-2">
+          <h2 className="text-xl font-bold text-white mb-2">
             오늘은 매칭 상대를 못 찾았어요
           </h2>
-          <p className="text-surface-500 text-sm">
+          <p className="text-zinc-400 text-sm">
             자기소개를 더 자세히 쓰면 매칭 확률이 높아져요!
             <br />
             내일 오후 1시에 다시 매칭해드릴게요
@@ -336,33 +334,33 @@ const HomePage = () => {
 
     // 응답 대기 중 (waiting 상태)
     return (
-      <div className="bg-white rounded-3xl shadow-lg shadow-surface-200/50 overflow-hidden">
-        <div className="bg-gradient-to-r from-primary-500 to-accent-500 px-6 py-4">
+      <div className="bg-zinc-800 rounded-3xl overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-4">
           <div className="flex items-center justify-between">
-            <span className="text-white/80 text-sm font-medium">오늘의 인연</span>
-            <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full">
+            <span className="text-white/90 text-sm font-medium">오늘의 인연</span>
+            <span className="bg-black/20 text-white text-xs px-3 py-1 rounded-full">
               {getTimeRemaining() || '응답 대기 중'}
             </span>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-surface-200 to-surface-300 rounded-full flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
             <span className="text-3xl">
               {matchedUser?.gender === 'male' ? '👨' : '👩'}
             </span>
           </div>
 
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-surface-900 mb-1">
+            <h2 className="text-xl font-bold text-white mb-1">
               {matchedUser?.name?.charAt(0)}** 님
             </h2>
             <div className="flex items-center justify-center gap-2">
-              <p className="text-surface-500 text-sm">
+              <p className="text-zinc-400 text-sm">
                 {matchedUser?.birth_year ? `${new Date().getFullYear() - matchedUser.birth_year + 1}세` : ''} · {matchedUser?.gender === 'male' ? '남성' : '여성'}
               </p>
               {matchedUser?.work_verified && (
-                <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-medium">
+                <span className="inline-flex items-center gap-1 bg-blue-500/15 text-blue-400 text-xs px-2 py-0.5 rounded-full font-medium">
                   ✅ 직장인증
                 </span>
               )}
@@ -370,59 +368,59 @@ const HomePage = () => {
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-              <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 p-3 bg-zinc-700/60 rounded-xl">
+              <div className="w-10 h-10 bg-orange-500/20 rounded-lg flex items-center justify-center">
                 <span>📍</span>
               </div>
               <div>
-                <p className="text-surface-500 text-xs">거주지</p>
-                <p className="text-surface-900 font-medium">{matchedUser?.region || '비공개'}</p>
+                <p className="text-zinc-500 text-xs">거주지</p>
+                <p className="text-white font-medium">{matchedUser?.region || '비공개'}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-              <div className="w-10 h-10 bg-accent-100 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 p-3 bg-zinc-700/60 rounded-xl">
+              <div className="w-10 h-10 bg-orange-500/15 rounded-lg flex items-center justify-center">
                 <span>💼</span>
               </div>
               <div>
-                <p className="text-surface-500 text-xs">직장 위치</p>
-                <p className="text-surface-900 font-medium">{matchedUser?.work_location || '비공개'}</p>
+                <p className="text-zinc-500 text-xs">직장 위치</p>
+                <p className="text-white font-medium">{matchedUser?.work_location || '비공개'}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-surface-50 rounded-xl">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <div className="flex items-center gap-3 p-3 bg-zinc-700/60 rounded-xl">
+              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
                 <span>🏢</span>
               </div>
               <div>
-                <p className="text-surface-500 text-xs">직장 유형</p>
-                <p className="text-surface-900 font-medium">{WORK_TYPE_LABELS[matchedUser?.work_type] || '비공개'}</p>
+                <p className="text-zinc-500 text-xs">직장 유형</p>
+                <p className="text-white font-medium">{WORK_TYPE_LABELS[matchedUser?.work_type] || '비공개'}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
-              <div className="p-3 bg-surface-50 rounded-xl text-center">
-                <p className="text-surface-500 text-xs mb-1">MBTI</p>
-                <p className="text-surface-900 font-medium text-sm">{matchedUser?.mbti || '-'}</p>
+              <div className="p-3 bg-zinc-700/60 rounded-xl text-center">
+                <p className="text-zinc-500 text-xs mb-1">MBTI</p>
+                <p className="text-white font-medium text-sm">{matchedUser?.mbti || '-'}</p>
               </div>
-              <div className="p-3 bg-surface-50 rounded-xl text-center">
-                <p className="text-surface-500 text-xs mb-1">흡연</p>
-                <p className="text-surface-900 font-medium text-sm">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
+              <div className="p-3 bg-zinc-700/60 rounded-xl text-center">
+                <p className="text-zinc-500 text-xs mb-1">흡연</p>
+                <p className="text-white font-medium text-sm">{SMOKING_LABELS[matchedUser?.smoking] || '-'}</p>
               </div>
-              <div className="p-3 bg-surface-50 rounded-xl text-center">
-                <p className="text-surface-500 text-xs mb-1">음주</p>
-                <p className="text-surface-900 font-medium text-sm">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
+              <div className="p-3 bg-zinc-700/60 rounded-xl text-center">
+                <p className="text-zinc-500 text-xs mb-1">음주</p>
+                <p className="text-white font-medium text-sm">{DRINKING_LABELS[matchedUser?.drinking] || '-'}</p>
               </div>
             </div>
 
             {matchedUser?.interests && (
-              <div className="p-4 bg-surface-50 rounded-xl">
-                <p className="text-surface-500 text-xs mb-2">관심사</p>
+              <div className="p-4 bg-zinc-700/60 rounded-xl">
+                <p className="text-zinc-500 text-xs mb-2">관심사</p>
                 <div className="flex flex-wrap gap-2">
                   {parseInterests(matchedUser.interests).map((interest) => (
                     <span
                       key={interest}
-                      className="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs"
+                      className="px-2 py-1 bg-orange-500/15 text-orange-400 rounded-full text-xs"
                     >
                       {INTEREST_LABELS[interest] || interest}
                     </span>
@@ -432,9 +430,9 @@ const HomePage = () => {
             )}
 
             {matchedUser?.bio && (
-              <div className="p-4 bg-surface-50 rounded-xl">
-                <p className="text-surface-500 text-xs mb-2">자기소개</p>
-                <p className="text-surface-700 text-sm leading-relaxed">{matchedUser.bio}</p>
+              <div className="p-4 bg-zinc-700/60 rounded-xl">
+                <p className="text-zinc-500 text-xs mb-2">자기소개</p>
+                <p className="text-zinc-300 text-sm leading-relaxed">{matchedUser.bio}</p>
               </div>
             )}
           </div>
@@ -442,19 +440,19 @@ const HomePage = () => {
           <div className="mt-6">
             {myResponse === null ? (
               <div className="space-y-3">
-                <p className="text-center text-surface-500 text-sm mb-3">
+                <p className="text-center text-zinc-500 text-sm mb-3">
                   둘 중 하나를 선택해야 다음 매칭이 활성화됩니다!
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => handleResponse(false)}
-                    className="py-4 px-6 bg-surface-100 hover:bg-surface-200 text-surface-600 font-semibold rounded-xl transition-all"
+                    className="py-4 px-6 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 font-semibold rounded-xl transition-all"
                   >
                     매칭 안할래요
                   </button>
                   <button
                     onClick={() => handleResponse(true)}
-                    className="py-4 px-6 bg-gradient-to-r from-primary-500 to-accent-500 hover:from-primary-600 hover:to-accent-600 text-white font-semibold rounded-xl transition-all"
+                    className="py-4 px-6 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all"
                   >
                     매칭할래요!
                   </button>
@@ -464,10 +462,10 @@ const HomePage = () => {
               <div className="text-center py-4">
                 {myResponse === true ? (
                   <div>
-                    <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-700 px-4 py-2 rounded-full mb-2">
+                    <div className="inline-flex items-center gap-2 bg-orange-500/15 text-orange-400 px-4 py-2 rounded-full mb-2">
                       <span className="font-medium">매칭할래요를 선택했어요!</span>
                     </div>
-                    <p className="text-surface-500 text-sm">
+                    <p className="text-zinc-400 text-sm">
                       {theirResponse === null
                         ? '상대방의 응답을 기다리고 있어요...'
                         : theirResponse === true
@@ -477,10 +475,10 @@ const HomePage = () => {
                   </div>
                 ) : (
                   <div>
-                    <div className="inline-flex items-center gap-2 bg-surface-100 text-surface-600 px-4 py-2 rounded-full mb-2">
+                    <div className="inline-flex items-center gap-2 bg-zinc-700 text-zinc-400 px-4 py-2 rounded-full mb-2">
                       <span className="font-medium">매칭 안할래요를 선택했어요</span>
                     </div>
-                    <p className="text-surface-500 text-sm">
+                    <p className="text-zinc-500 text-sm">
                       다음 매칭을 기다려주세요!
                     </p>
                   </div>
@@ -495,36 +493,31 @@ const HomePage = () => {
 
   const getStatusLabel = (match) => {
     if (match.status === 'matched') {
-      return { text: '성사', color: 'bg-green-100 text-green-700' }
+      return { text: '성사', color: 'bg-green-500/15 text-green-400' }
     } else if (match.status === 'rejected') {
-      return { text: '불발', color: 'bg-surface-100 text-surface-600' }
+      return { text: '불발', color: 'bg-zinc-700 text-zinc-400' }
     } else {
-      return { text: '진행중', color: 'bg-primary-100 text-primary-700' }
+      return { text: '진행중', color: 'bg-orange-500/15 text-orange-400' }
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-zinc-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-surface-50 pb-24">
+    <div className="min-h-screen bg-zinc-900 pb-24">
       {/* Header */}
-      <header className="sticky top-0 bg-surface-50/80 backdrop-blur-lg border-b border-surface-200 z-50">
-        <div className="max-w-lg mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-accent-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm font-[Outfit]">G</span>
-            </div>
-            <span className="font-bold text-lg font-[Outfit]">GITTY</span>
-          </div>
+      <header className="sticky top-0 bg-zinc-900/80 backdrop-blur-lg border-b border-zinc-800 z-50">
+        <div className="max-w-lg mx-auto px-6 py-3 flex items-center justify-between">
+          <img src="/Gitty2.png" alt="GITTY" className="h-8 w-auto" />
           <button
             onClick={async () => { await signOut(); navigate('/'); }}
-            className="text-surface-500 text-sm hover:text-surface-700"
+            className="text-zinc-500 text-sm hover:text-zinc-300 transition-colors"
           >
             로그아웃
           </button>
@@ -533,13 +526,13 @@ const HomePage = () => {
 
       {/* Tabs */}
       <div className="max-w-lg mx-auto px-6 pt-4">
-        <div className="flex gap-2 bg-surface-100 p-1 rounded-xl">
+        <div className="flex gap-2 bg-zinc-800 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab('today')}
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
               activeTab === 'today'
-                ? 'bg-white text-surface-900 shadow-sm'
-                : 'text-surface-500 hover:text-surface-700'
+                ? 'bg-zinc-700 text-white'
+                : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
             매칭현황
@@ -548,8 +541,8 @@ const HomePage = () => {
             onClick={() => setActiveTab('history')}
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all ${
               activeTab === 'history'
-                ? 'bg-white text-surface-900 shadow-sm'
-                : 'text-surface-500 hover:text-surface-700'
+                ? 'bg-zinc-700 text-white'
+                : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
             결과안내
@@ -562,10 +555,10 @@ const HomePage = () => {
         {activeTab === 'today' && (
           <>
             <div className="mb-6">
-              <h1 className="text-xl font-bold text-surface-900">
+              <h1 className="text-xl font-bold text-white">
                 안녕하세요, {profile?.name || '회원'}님!
               </h1>
-              <p className="text-surface-500 text-sm mt-1">
+              <p className="text-zinc-500 text-sm mt-1">
                 {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
               </p>
             </div>
@@ -574,16 +567,16 @@ const HomePage = () => {
             {profile && !profile.work_verified && (
               <button
                 onClick={() => navigate('/profile')}
-                className="w-full mb-4 p-4 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-2xl flex items-center gap-3 hover:from-orange-100 hover:to-yellow-100 transition-all text-left"
+                className="w-full mb-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-center gap-3 hover:bg-orange-500/15 transition-all text-left"
               >
-                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
                   <span className="text-xl">🔥</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-orange-800 font-semibold text-sm">직장 인증하고 매칭률 올리기</p>
-                  <p className="text-orange-600 text-xs mt-0.5">인증 뱃지 획득 · 매칭 점수 +15점</p>
+                  <p className="text-orange-400 font-semibold text-sm">직장 인증하고 매칭률 올리기</p>
+                  <p className="text-orange-400/70 text-xs mt-0.5">인증 뱃지 획득 · 매칭 점수 +15점</p>
                 </div>
-                <svg className="w-4 h-4 text-orange-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -595,32 +588,32 @@ const HomePage = () => {
 
         {activeTab === 'history' && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-surface-900">매칭 히스토리</h2>
+            <h2 className="text-lg font-bold text-white">매칭 히스토리</h2>
 
             {matchHistory.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-surface-500">아직 매칭 기록이 없어요</p>
+                <p className="text-zinc-500">아직 매칭 기록이 없어요</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {matchHistory.map((match) => {
                   const statusLabel = getStatusLabel(match)
                   return (
-                    <div key={match.id} className="bg-white rounded-2xl p-4 shadow-sm">
+                    <div key={match.id} className="bg-zinc-800 rounded-2xl p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-surface-100 rounded-full flex items-center justify-center">
+                          <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center">
                             <span className="text-xl">
                               {match.otherUser?.gender === 'male' ? '👨' : '👩'}
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-surface-900">
+                            <p className="font-medium text-white">
                               {match.status === 'matched'
                                 ? match.otherUser?.name
                                 : `${match.otherUser?.name?.charAt(0)}**`} 님
                             </p>
-                            <p className="text-surface-500 text-xs">
+                            <p className="text-zinc-500 text-xs">
                               {new Date(match.cycle_start).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
                             </p>
                           </div>
@@ -631,9 +624,9 @@ const HomePage = () => {
                       </div>
 
                       {match.status === 'matched' && (
-                        <div className="mt-3 p-3 bg-yellow-50 rounded-lg">
-                          <p className="text-yellow-800 text-xs">카카오톡 ID</p>
-                          <p className="text-yellow-900 font-bold">{match.otherUser?.kakao_id || '미등록'}</p>
+                        <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                          <p className="text-yellow-400 text-xs">카카오톡 ID</p>
+                          <p className="text-yellow-300 font-bold">{match.otherUser?.kakao_id || '미등록'}</p>
                         </div>
                       )}
                     </div>
