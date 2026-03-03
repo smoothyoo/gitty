@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// MBTI 궁합 점수표 (상보적 타입일수록 높은 점수)
+// MBTI 궁합 점수표
 const MBTI_COMPATIBILITY: Record<string, string[]> = {
   INTJ: ['ENFP', 'ENTP'],
   INTP: ['ENTJ', 'ENFJ'],
@@ -34,10 +34,12 @@ interface User {
   interests: string
   mbti: string
   region: string
+  mode_dating: boolean
+  mode_meeting: boolean
 }
 
-// 두 유저 간 궁합 점수 계산
-function calcScore(a: User, b: User): number {
+// 소개팅용 궁합 점수 계산
+function calcDatingScore(a: User, b: User): number {
   let score = 0
 
   // 1. 공통 관심사 (개당 10점)
@@ -49,14 +51,10 @@ function calcScore(a: User, b: User): number {
   }
 
   // 2. 흡연 성향 유사 (15점)
-  if (a.smoking && b.smoking && a.smoking === b.smoking) {
-    score += 15
-  }
+  if (a.smoking && b.smoking && a.smoking === b.smoking) score += 15
 
   // 3. 음주 성향 유사 (15점)
-  if (a.drinking && b.drinking && a.drinking === b.drinking) {
-    score += 15
-  }
+  if (a.drinking && b.drinking && a.drinking === b.drinking) score += 15
 
   // 4. 나이 차 (5세 이내 20점, 10세 이내 10점)
   if (a.birth_year && b.birth_year) {
@@ -66,23 +64,40 @@ function calcScore(a: User, b: User): number {
   }
 
   // 5. 같은 지역 (10점)
-  if (a.region && b.region && a.region === b.region) {
-    score += 10
-  }
+  if (a.region && b.region && a.region === b.region) score += 10
 
   // 6. MBTI 궁합 (25점)
   if (a.mbti && b.mbti) {
     const compatibleWithA = MBTI_COMPATIBILITY[a.mbti] || []
-    if (compatibleWithA.includes(b.mbti)) {
-      score += 25
-    }
+    if (compatibleWithA.includes(b.mbti)) score += 25
   }
 
   return score
 }
 
+// Fisher-Yates 셔플
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+// 마감/결과 날짜 생성
+function makeDeadlines() {
+  const deadline = new Date()
+  deadline.setUTCHours(14, 59, 0, 0) // 오늘 23:59 KST
+
+  const resultDate = new Date()
+  resultDate.setDate(resultDate.getDate() + 1)
+  resultDate.setUTCHours(8, 0, 0, 0) // 다음날 17:00 KST
+
+  return { deadline, resultDate }
+}
+
 Deno.serve(async (req) => {
-  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -95,127 +110,181 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().split('T')[0]
 
-    // 1. 이번 주 시작일 계산 (월요일 기준)
+    // 이번 주 시작일 계산 (월요일 기준)
     const now = new Date()
-    const dayOfWeek = now.getDay() // 0=일, 1=월, ..., 6=토
+    const dayOfWeek = now.getDay()
     const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
     const weekStart = new Date(now)
     weekStart.setDate(now.getDate() - daysFromMonday)
     const weekStartStr = weekStart.toISOString().split('T')[0]
 
-    // 2. 이번 주에 이미 매칭된 유저 ID 목록 조회
+    // ──────────────────────────────────────
+    // 이번 주 기존 매칭 조회 (소개팅 / 미팅 분리)
+    // ──────────────────────────────────────
     const { data: existingMatches } = await supabase
       .from('matches')
-      .select('user_a, user_b')
+      .select('user_a, user_b, match_type')
       .gte('cycle_start', weekStartStr)
 
-    const matchedUserIds = new Set<string>()
-    ;(existingMatches || []).forEach((m: { user_a: string; user_b: string }) => {
-      matchedUserIds.add(m.user_a)
-      matchedUserIds.add(m.user_b)
+    const datingMatchedIds = new Set<string>()
+    const meetingMatchedIds = new Set<string>()
+
+    ;(existingMatches || []).forEach((m: { user_a: string; user_b: string; match_type: string }) => {
+      if (m.match_type === 'meeting') {
+        meetingMatchedIds.add(m.user_a)
+        meetingMatchedIds.add(m.user_b)
+      } else {
+        // 'dating' 또는 null (기존 레코드)
+        datingMatchedIds.add(m.user_a)
+        datingMatchedIds.add(m.user_b)
+      }
     })
 
-    // 3. 이번 주 미매칭 유저 전체 조회
+    // 전체 유저 조회 (mode_dating, mode_meeting 포함)
     const { data: allUsers, error: usersError } = await supabase
       .from('users')
-      .select('id, gender, birth_year, smoking, drinking, interests, mbti, region')
+      .select('id, gender, birth_year, smoking, drinking, interests, mbti, region, mode_dating, mode_meeting')
 
     if (usersError) throw usersError
 
-    const unmatchedUsers = (allUsers || []).filter(
-      (u: User) => !matchedUserIds.has(u.id)
+    const users = allUsers || []
+    const allInserts: object[] = []
+
+    // ══════════════════════════════════════
+    // [1] 소개팅 매칭 (mode_dating = TRUE)
+    // ══════════════════════════════════════
+    const datingPool = users.filter(
+      (u: User) => u.mode_dating && !datingMatchedIds.has(u.id)
     )
 
-    const males = unmatchedUsers.filter((u: User) => u.gender === 'male')
-    const females = unmatchedUsers.filter((u: User) => u.gender === 'female')
+    const datingMales = datingPool.filter((u: User) => u.gender === 'male')
+    const datingFemales = datingPool.filter((u: User) => u.gender === 'female')
 
-    if (males.length === 0 || females.length === 0) {
-      return new Response(
-        JSON.stringify({ message: '매칭 가능한 유저 없음', matched: 0 }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    if (datingMales.length > 0 && datingFemales.length > 0) {
+      // 모든 남녀 조합 점수 계산
+      const pairs: { male: User; female: User; score: number }[] = []
+      for (const male of datingMales) {
+        for (const female of datingFemales) {
+          pairs.push({ male, female, score: calcDatingScore(male, female) })
+        }
+      }
+      pairs.sort((a, b) => b.score - a.score)
 
-    // 4. 모든 남녀 조합 점수 계산
-    const pairs: { male: User; female: User; score: number }[] = []
-    for (const male of males) {
-      for (const female of females) {
-        pairs.push({ male, female, score: calcScore(male, female) })
+      const matchedMales = new Set<string>()
+      const matchedFemales = new Set<string>()
+
+      for (const pair of pairs) {
+        if (matchedMales.has(pair.male.id) || matchedFemales.has(pair.female.id)) continue
+
+        const { deadline, resultDate } = makeDeadlines()
+        allInserts.push({
+          user_a: pair.male.id,
+          user_b: pair.female.id,
+          match_type: 'dating',
+          cycle_start: today,
+          response_deadline: deadline.toISOString(),
+          result_date: resultDate.toISOString(),
+          status: 'waiting',
+        })
+
+        matchedMales.add(pair.male.id)
+        matchedFemales.add(pair.female.id)
+      }
+
+      // 매칭 못 된 소개팅 유저 → no_match
+      const datingNoMatch = [
+        ...datingMales.filter((u: User) => !matchedMales.has(u.id)),
+        ...datingFemales.filter((u: User) => !matchedFemales.has(u.id)),
+      ]
+      for (const u of datingNoMatch) {
+        allInserts.push({
+          user_a: u.id,
+          user_b: u.id,
+          match_type: 'dating',
+          cycle_start: today,
+          response_deadline: new Date().toISOString(),
+          result_date: new Date().toISOString(),
+          status: 'no_match',
+        })
       }
     }
 
-    // 점수 내림차순 정렬
-    pairs.sort((a, b) => b.score - a.score)
+    // ══════════════════════════════════════
+    // [2] 미팅 매칭 (mode_meeting = TRUE)
+    //     조건: 이성 간 + 나이 차 ±9세 이내
+    //     단순 그리디 (복잡한 점수 없이)
+    // ══════════════════════════════════════
+    const meetingPool = users.filter(
+      (u: User) => u.mode_meeting && !meetingMatchedIds.has(u.id)
+    )
 
-    // 5. 그리디 매칭 (가장 높은 점수 쌍부터 배정)
-    const matchedMales = new Set<string>()
-    const matchedFemales = new Set<string>()
-    const newMatches: {
-      user_a: string
-      user_b: string
-      cycle_start: string
-      response_deadline: string
-      result_date: string
-      status: string
-    }[] = []
+    const meetingMales = shuffle(meetingPool.filter((u: User) => u.gender === 'male'))
+    const meetingFemales = shuffle(meetingPool.filter((u: User) => u.gender === 'female'))
 
-    for (const pair of pairs) {
-      if (matchedMales.has(pair.male.id) || matchedFemales.has(pair.female.id)) {
-        continue
+    if (meetingMales.length > 0 && meetingFemales.length > 0) {
+      const meetingMatchedMales = new Set<string>()
+      const meetingMatchedFemales = new Set<string>()
+
+      for (const male of meetingMales) {
+        if (meetingMatchedMales.has(male.id)) continue
+
+        // 나이 차 ±9세 이내인 여성 중 아직 매칭 안 된 첫 번째 선택
+        const partner = meetingFemales.find(
+          (f) =>
+            !meetingMatchedFemales.has(f.id) &&
+            Math.abs((male.birth_year || 0) - (f.birth_year || 0)) <= 9
+        )
+
+        if (partner) {
+          const { deadline, resultDate } = makeDeadlines()
+          allInserts.push({
+            user_a: male.id,
+            user_b: partner.id,
+            match_type: 'meeting',
+            cycle_start: today,
+            response_deadline: deadline.toISOString(),
+            result_date: resultDate.toISOString(),
+            status: 'waiting',
+          })
+          meetingMatchedMales.add(male.id)
+          meetingMatchedFemales.add(partner.id)
+        }
       }
 
-      // 응답 마감: 오늘 밤 23:59 KST (= 14:59 UTC)
-      const deadline = new Date()
-      deadline.setUTCHours(14, 59, 0, 0)
-      // 결과 발표: 다음날 오후 5시 KST (= 08:00 UTC)
-      const resultDate = new Date()
-      resultDate.setDate(resultDate.getDate() + 1)
-      resultDate.setUTCHours(8, 0, 0, 0)
-
-      newMatches.push({
-        user_a: pair.male.id,
-        user_b: pair.female.id,
-        cycle_start: today,
-        response_deadline: deadline.toISOString(),
-        result_date: resultDate.toISOString(),
-        status: 'waiting',
-      })
-
-      matchedMales.add(pair.male.id)
-      matchedFemales.add(pair.female.id)
+      // 미팅 매칭 못 된 유저 → no_match
+      const meetingNoMatch = [
+        ...meetingMales.filter((u: User) => !meetingMatchedMales.has(u.id)),
+        ...meetingFemales.filter((u: User) => !meetingMatchedFemales.has(u.id)),
+      ]
+      for (const u of meetingNoMatch) {
+        allInserts.push({
+          user_a: u.id,
+          user_b: u.id,
+          match_type: 'meeting',
+          cycle_start: today,
+          response_deadline: new Date().toISOString(),
+          result_date: new Date().toISOString(),
+          status: 'no_match',
+        })
+      }
     }
 
-    // 6. 매칭 못 된 유저 → no_match 레코드 생성 (자기 자신과 매칭)
-    const noMatchUsers = [
-      ...males.filter((u: User) => !matchedMales.has(u.id)),
-      ...females.filter((u: User) => !matchedFemales.has(u.id)),
-    ]
-
-    for (const u of noMatchUsers) {
-      newMatches.push({
-        user_a: u.id,
-        user_b: u.id,  // 자기 자신 = no_match 표시용
-        cycle_start: today,
-        response_deadline: new Date().toISOString(),
-        result_date: new Date().toISOString(),
-        status: 'no_match',
-      })
-    }
-
-    // 7. DB에 insert
-    if (newMatches.length > 0) {
-      const { error: insertError } = await supabase
-        .from('matches')
-        .insert(newMatches)
-
+    // ──────────────────────────────────────
+    // DB insert
+    // ──────────────────────────────────────
+    if (allInserts.length > 0) {
+      const { error: insertError } = await supabase.from('matches').insert(allInserts)
       if (insertError) throw insertError
     }
+
+    const datingCount = allInserts.filter((m: any) => m.match_type === 'dating' && m.status === 'waiting').length
+    const meetingCount = allInserts.filter((m: any) => m.match_type === 'meeting' && m.status === 'waiting').length
 
     return new Response(
       JSON.stringify({
         message: '매칭 완료',
-        matched: newMatches.length - noMatchUsers.length,
-        noMatch: noMatchUsers.length,
+        dating: { matched: datingCount },
+        meeting: { matched: meetingCount },
         weekStart: weekStartStr,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
