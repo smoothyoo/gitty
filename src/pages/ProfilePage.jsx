@@ -21,6 +21,14 @@ const formatRegion = (regionStr) => {
   return district ? `${cityLabel} ${district}` : cityLabel
 }
 
+const BIO_GUIDES = [
+  { label: '성격/가치관', icon: '✨', placeholder: '저는 긍정적이고 활동적인 성격이에요. 새로운 것에 도전하기를 즐기고 주변 사람들에게 에너지를 주려고 해요.' },
+  { label: '취미/관심사', icon: '🎯', placeholder: '주말엔 주로 카페 탐방이나 독서를 해요. 최근엔 운동을 시작했는데, 같이 취미를 즐길 수 있는 분이면 더 좋겠어요!' },
+  { label: '외적 특징', icon: '👤', placeholder: '단정하고 깔끔한 스타일을 좋아해요. 평소에 캐주얼한 편이지만 분위기에 맞게 코디를 즐기기도 해요.' },
+  { label: '이상형', icon: '💕', placeholder: '함께 있을 때 편안하고 대화가 잘 통하는 분이 좋아요. 서로 성장할 수 있고, 작은 것에도 감사할 줄 아는 분을 만나고 싶어요.' },
+  { label: '인생 영화/음악', icon: '🎬', placeholder: '인생 영화는 인터스텔라예요. 음악은 재즈나 인디음악을 자주 들어요. 같이 공연 보러 가는 걸 좋아해요.' },
+]
+
 const ProfilePage = () => {
   const navigate = useNavigate()
   const { profile, signOut, refreshProfile, user } = useAuth()
@@ -32,6 +40,7 @@ const ProfilePage = () => {
   const [editRegionDistrict, setEditRegionDistrict] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [bioPlaceholder, setBioPlaceholder] = useState('자유롭게 자신을 소개해주세요 😊')
 
   const [phoneStep, setPhoneStep] = useState('input')
   const [newPhone, setNewPhone] = useState('')
@@ -53,6 +62,7 @@ const ProfilePage = () => {
 
   const openEditModal = (field) => {
     setError('')
+    setBioPlaceholder('자유롭게 자신을 소개해주세요 😊')
     setEditModal(field)
 
     if (field === 'region') {
@@ -65,7 +75,8 @@ const ProfilePage = () => {
     else if (field === 'smoking') setEditValue(profile?.smoking || '')
     else if (field === 'drinking') setEditValue(profile?.drinking || '')
     else if (field === 'interests') setEditInterests(parseInterests(profile?.interests))
-    else if (field === 'bio') setEditValue(profile?.bio || '')
+    else if (field === 'bioDating') setEditValue(profile?.bio_dating || '')
+    else if (field === 'bioMeeting') setEditValue(profile?.bio_meeting || '')
     else if (field === 'kakaoId') setEditValue(profile?.kakao_id || '')
     else if (field === 'phone') {
       setPhoneStep('input')
@@ -81,6 +92,7 @@ const ProfilePage = () => {
     setEditRegionCity('')
     setEditRegionDistrict('')
     setError('')
+    setBioPlaceholder('자유롭게 자신을 소개해주세요 😊')
     setPhoneStep('input')
     setNewPhone('')
     setVerifyCode('')
@@ -107,7 +119,8 @@ const ProfilePage = () => {
       else if (editModal === 'smoking') updateData.smoking = editValue
       else if (editModal === 'drinking') updateData.drinking = editValue
       else if (editModal === 'interests') updateData.interests = editInterests.join(',')
-      else if (editModal === 'bio') updateData.bio = editValue
+      else if (editModal === 'bioDating') updateData.bio_dating = editValue
+      else if (editModal === 'bioMeeting') updateData.bio_meeting = editValue
       else if (editModal === 'kakaoId') updateData.kakao_id = editValue
 
       const { error: updateError } = await supabase
@@ -127,38 +140,47 @@ const ProfilePage = () => {
     }
   }
 
-  const handlePhoneSendCode = () => {
-    if (newPhone.length < 10) {
-      setError('올바른 전화번호를 입력해주세요')
+  const handleModeToggle = async (modeField) => {
+    const currentValue = profile?.[modeField]
+    const otherModeField = modeField === 'mode_dating' ? 'mode_meeting' : 'mode_dating'
+
+    // 둘 다 꺼지는 것 방지 → 마지막 하나면 mode-select로
+    if (currentValue && !profile?.[otherModeField]) {
+      navigate('/mode-select')
       return
     }
+
+    setSaving(true)
+    try {
+      await supabase.from('users').update({ [modeField]: !currentValue }).eq('id', user.id)
+      await refreshProfile(user.id)
+    } catch (err) {
+      console.error('Mode toggle error:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handlePhoneSendCode = () => {
+    if (newPhone.length < 10) { setError('올바른 전화번호를 입력해주세요'); return }
     setError('')
     setPhoneStep('verify')
   }
 
   const handlePhoneVerify = async () => {
-    if (verifyCode !== DUMMY_SMS_CODE) {
-      setError('인증번호가 일치하지 않습니다')
-      return
-    }
+    if (verifyCode !== DUMMY_SMS_CODE) { setError('인증번호가 일치하지 않습니다'); return }
 
     setSaving(true)
     setError('')
-
     try {
-      // Supabase Auth 이메일+비밀번호도 함께 변경
       const { error: authError } = await supabase.auth.updateUser({
         email: generateEmail(newPhone),
         password: generatePassword(newPhone),
       })
-
       if (authError) throw authError
 
       const { error: updateError } = await supabase
-        .from('users')
-        .update({ phone: newPhone })
-        .eq('id', user.id)
-
+        .from('users').update({ phone: newPhone }).eq('id', user.id)
       if (updateError) throw updateError
 
       await refreshProfile(user.id)
@@ -178,27 +200,15 @@ const ProfilePage = () => {
 
   const handleWorkEmailSend = () => {
     setWorkVerifyError('')
-    if (!workEmail.includes('@')) {
-      setWorkVerifyError('올바른 이메일 주소를 입력해주세요')
-      return
-    }
-    if (isPersonalEmail(workEmail)) {
-      setWorkVerifyError('개인 이메일은 사용할 수 없어요. 회사 이메일을 입력해주세요.')
-      return
-    }
+    if (!workEmail.includes('@')) { setWorkVerifyError('올바른 이메일 주소를 입력해주세요'); return }
+    if (isPersonalEmail(workEmail)) { setWorkVerifyError('개인 이메일은 사용할 수 없어요. 회사 이메일을 입력해주세요.'); return }
     setWorkVerifyLoading(true)
-    setTimeout(() => {
-      setWorkVerifyLoading(false)
-      setWorkCodeSent(true)
-    }, 1000)
+    setTimeout(() => { setWorkVerifyLoading(false); setWorkCodeSent(true) }, 1000)
   }
 
   const handleWorkVerifyCode = async () => {
     setWorkVerifyError('')
-    if (workVerifyCode !== DUMMY_SMS_CODE) {
-      setWorkVerifyError('인증코드가 일치하지 않습니다')
-      return
-    }
+    if (workVerifyCode !== DUMMY_SMS_CODE) { setWorkVerifyError('인증코드가 일치하지 않습니다'); return }
     setWorkVerifyLoading(true)
     try {
       const domain = workEmail.split('@')[1]
@@ -211,9 +221,7 @@ const ProfilePage = () => {
       }).eq('id', user.id)
       await refreshProfile(user.id)
       setEditModal(null)
-      setWorkEmail('')
-      setWorkVerifyCode('')
-      setWorkCodeSent(false)
+      setWorkEmail(''); setWorkVerifyCode(''); setWorkCodeSent(false)
     } catch (err) {
       console.error('Work verify error:', err)
       setWorkVerifyError('인증 중 오류가 발생했습니다')
@@ -252,16 +260,14 @@ const ProfilePage = () => {
 
       <main className="max-w-lg mx-auto px-6 py-6">
         {/* Profile Card */}
-        <div className="bg-zinc-800 rounded-3xl overflow-hidden mb-6">
+        <div className="bg-zinc-800 rounded-3xl overflow-hidden mb-4">
           <div className="bg-gradient-to-br from-orange-500 to-orange-900 px-6 py-8">
             <div className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
               <span className="text-4xl">
                 {profile?.gender === 'male' ? '👨' : '👩'}
               </span>
             </div>
-            <h2 className="text-center text-white text-xl font-bold">
-              {profile?.name || '이름 없음'}
-            </h2>
+            <h2 className="text-center text-white text-xl font-bold">{profile?.name || '이름 없음'}</h2>
             <p className="text-center text-white/80 text-sm mt-1">
               {profile?.birth_year ? `${new Date().getFullYear() - profile.birth_year + 1}세` : ''} · {profile?.gender === 'male' ? '남성' : '여성'}
             </p>
@@ -301,10 +307,7 @@ const ProfilePage = () => {
               <div className="flex flex-wrap gap-2">
                 {currentInterests.length > 0 ? (
                   currentInterests.map((interest) => (
-                    <span
-                      key={interest}
-                      className="px-3 py-1 bg-orange-500/15 text-orange-400 rounded-full text-sm"
-                    >
+                    <span key={interest} className="px-3 py-1 bg-orange-500/15 text-orange-400 rounded-full text-sm">
                       {INTEREST_LABELS[interest] || interest}
                     </span>
                   ))
@@ -312,17 +315,6 @@ const ProfilePage = () => {
                   <span className="text-zinc-500">-</span>
                 )}
               </div>
-            </div>
-
-            {/* 자기소개 */}
-            <div className="py-3 border-b border-zinc-700">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-zinc-400">자기소개</span>
-                <button onClick={() => openEditModal('bio')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
-              </div>
-              <p className="text-white text-sm leading-relaxed">
-                {profile?.bio ? profile.bio : <span className="text-zinc-500">-</span>}
-              </p>
             </div>
 
             {/* 카카오톡 ID */}
@@ -333,6 +325,36 @@ const ProfilePage = () => {
                 <button onClick={() => openEditModal('kakaoId')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
               </div>
             </div>
+
+            {/* 소개팅 자기소개 */}
+            {profile?.mode_dating && (
+              <div className="py-3 border-b border-zinc-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5">
+                    <span>💑</span> 소개팅 자기소개
+                  </span>
+                  <button onClick={() => openEditModal('bioDating')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
+                </div>
+                <p className="text-white text-sm leading-relaxed">
+                  {profile?.bio_dating || <span className="text-zinc-500">-</span>}
+                </p>
+              </div>
+            )}
+
+            {/* 미팅 자기소개 */}
+            {profile?.mode_meeting && (
+              <div className="py-3 border-b border-zinc-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-zinc-400 flex items-center gap-1.5">
+                    <span>🎉</span> 미팅 자기소개
+                  </span>
+                  <button onClick={() => openEditModal('bioMeeting')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
+                </div>
+                <p className="text-white text-sm leading-relaxed">
+                  {profile?.bio_meeting || <span className="text-zinc-500">-</span>}
+                </p>
+              </div>
+            )}
 
             {/* 직장 인증 */}
             <div className="py-3">
@@ -345,10 +367,7 @@ const ProfilePage = () => {
                 ) : (
                   <button
                     onClick={() => {
-                      setWorkEmail('')
-                      setWorkVerifyCode('')
-                      setWorkCodeSent(false)
-                      setWorkVerifyError('')
+                      setWorkEmail(''); setWorkVerifyCode(''); setWorkCodeSent(false); setWorkVerifyError('')
                       setEditModal('workVerify')
                     }}
                     className="text-sm px-3 py-1 bg-orange-500/15 text-orange-400 rounded-full font-medium hover:bg-orange-500/25 transition-all"
@@ -359,6 +378,41 @@ const ProfilePage = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 매칭 모드 관리 */}
+        <div className="bg-zinc-800 rounded-2xl overflow-hidden mb-4">
+          <div className="px-4 py-3 border-b border-zinc-700">
+            <h3 className="text-zinc-300 font-semibold text-sm">매칭 모드</h3>
+          </div>
+          <div className="divide-y divide-zinc-700">
+            {[
+              { field: 'mode_dating', emoji: '💑', label: '1:1 소개팅', desc: '한 명과 집중적으로 연결돼요' },
+              { field: 'mode_meeting', emoji: '🎉', label: '미팅', desc: '여럿이서 함께 만나요' },
+            ].map(({ field, emoji, label, desc }) => (
+              <div key={field} className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{emoji}</span>
+                  <div>
+                    <p className="text-white text-sm font-medium">{label}</p>
+                    <p className="text-zinc-500 text-xs">{desc}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleModeToggle(field)}
+                  disabled={saving}
+                  className={`relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    profile?.[field] ? 'bg-orange-500' : 'bg-zinc-600'
+                  }`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    profile?.[field] ? 'translate-x-6' : 'translate-x-1'
+                  }`} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="text-zinc-600 text-xs px-4 py-2">최소 하나의 모드는 활성화되어야 해요</p>
         </div>
 
         {/* Actions */}
@@ -374,9 +428,8 @@ const ProfilePage = () => {
 
       <BottomNav />
 
-      {/* 수정 모달 - 거주 지역 (2단 선택) */}
+      {/* 수정 모달 - 거주 지역 */}
       <BottomSheet isOpen={editModal === 'region'} onClose={closeEditModal} title="거주 지역 수정" maxHeight>
-        {/* 1단계: 서울/경기 */}
         <div className="mb-4">
           <p className="text-sm font-medium text-zinc-300 mb-3">시/도</p>
           <div className="grid grid-cols-2 gap-3">
@@ -396,7 +449,6 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* 2단계: 구/시 */}
         {editRegionCity && (
           <div className="mb-4">
             <p className="text-sm font-medium text-zinc-300 mb-3">구/시</p>
@@ -427,11 +479,7 @@ const ProfilePage = () => {
         )}
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        <ModalButtons
-          onCancel={closeEditModal}
-          onSave={handleSave}
-          disabled={!editRegionCity || !editRegionDistrict}
-        />
+        <ModalButtons onCancel={closeEditModal} onSave={handleSave} disabled={!editRegionCity || !editRegionDistrict} />
       </BottomSheet>
 
       {/* 수정 모달 - 직장 유형 */}
@@ -581,9 +629,7 @@ const ProfilePage = () => {
         {phoneStep === 'verify' && (
           <>
             <p className="text-zinc-400 text-sm mb-2">{newPhone}로 전송된 인증번호</p>
-            {SHOW_TEST_HINTS && (
-              <p className="text-orange-400 text-sm mb-4">테스트용 인증번호: {DUMMY_SMS_CODE}</p>
-            )}
+            {SHOW_TEST_HINTS && <p className="text-orange-400 text-sm mb-4">테스트용 인증번호: {DUMMY_SMS_CODE}</p>}
             <input
               type="text"
               value={verifyCode}
@@ -607,12 +653,57 @@ const ProfilePage = () => {
         )}
       </BottomSheet>
 
-      {/* 수정 모달 - 자기소개 */}
-      <BottomSheet isOpen={editModal === 'bio'} onClose={closeEditModal} title="자기소개 수정" maxHeight>
+      {/* 수정 모달 - 소개팅 자기소개 */}
+      <BottomSheet isOpen={editModal === 'bioDating'} onClose={closeEditModal} title="💑 소개팅 자기소개 수정" maxHeight>
+        <p className="text-xs text-zinc-500 mb-2">💡 자기소개에 쓰면 좋은 주제</p>
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
+          {BIO_GUIDES.map((guide) => (
+            <button
+              key={guide.label}
+              type="button"
+              onClick={() => setBioPlaceholder(guide.placeholder)}
+              className="flex-shrink-0 py-1.5 px-3 rounded-full border border-zinc-700 bg-zinc-900 text-zinc-500 text-xs font-medium hover:border-orange-500 hover:text-orange-400 transition-all flex items-center gap-1"
+            >
+              <span>{guide.icon}</span>
+              <span>{guide.label}</span>
+            </button>
+          ))}
+        </div>
         <textarea
           value={editValue}
           onChange={(e) => setEditValue(e.target.value)}
-          placeholder={'자기소개를 작성해주세요.\n\n이상형도 간단히 적어주시면 매칭에 도움이 됩니다!'}
+          placeholder={bioPlaceholder}
+          rows={6}
+          maxLength={300}
+          className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-2 resize-none transition-all"
+        />
+        <p className={`text-right text-xs mb-4 ${editValue.length < 10 ? 'text-red-500' : 'text-zinc-500'}`}>
+          {editValue.length}/300 (최소 10글자)
+        </p>
+        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        <ModalButtons onCancel={closeEditModal} onSave={handleSave} disabled={editValue.length < 10} />
+      </BottomSheet>
+
+      {/* 수정 모달 - 미팅 자기소개 */}
+      <BottomSheet isOpen={editModal === 'bioMeeting'} onClose={closeEditModal} title="🎉 미팅 자기소개 수정" maxHeight>
+        <p className="text-xs text-zinc-500 mb-2">💡 자기소개에 쓰면 좋은 주제</p>
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
+          {BIO_GUIDES.map((guide) => (
+            <button
+              key={guide.label}
+              type="button"
+              onClick={() => setBioPlaceholder(guide.placeholder)}
+              className="flex-shrink-0 py-1.5 px-3 rounded-full border border-zinc-700 bg-zinc-900 text-zinc-500 text-xs font-medium hover:border-orange-500 hover:text-orange-400 transition-all flex items-center gap-1"
+            >
+              <span>{guide.icon}</span>
+              <span>{guide.label}</span>
+            </button>
+          ))}
+        </div>
+        <textarea
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          placeholder={bioPlaceholder}
           rows={6}
           maxLength={300}
           className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-2 resize-none transition-all"
@@ -633,19 +724,13 @@ const ProfilePage = () => {
           placeholder="카카오톡 ID를 입력해주세요"
           className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent mb-2 transition-all"
         />
-        <p className="text-zinc-500 text-xs mb-4">
-          매칭 성사 시 상대방에게 공개됩니다
-        </p>
+        <p className="text-zinc-500 text-xs mb-4">매칭 성사 시 상대방에게 공개됩니다</p>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <ModalButtons onCancel={closeEditModal} onSave={handleSave} disabled={!editValue} />
       </BottomSheet>
 
       {/* 직장 인증 모달 */}
-      <BottomSheet
-        isOpen={editModal === 'workVerify'}
-        onClose={() => setEditModal(null)}
-        title="직장 인증"
-      >
+      <BottomSheet isOpen={editModal === 'workVerify'} onClose={() => setEditModal(null)} title="직장 인증">
         <div className="space-y-4">
           <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
             <p className="text-orange-400 text-sm">✨ 인증 시 매칭 점수 +15점 · 인증 뱃지 표시</p>

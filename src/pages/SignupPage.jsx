@@ -159,10 +159,6 @@ const SignupPage = () => {
       setError('관심사를 최소 1개 이상 선택해주세요')
       return
     }
-    if (!formData.bio || formData.bio.length < 10) {
-      setError('자기소개를 최소 10글자 이상 입력해주세요')
-      return
-    }
     if (!formData.kakaoId) {
       setError('카카오톡 ID는 필수입니다')
       return
@@ -219,7 +215,6 @@ const SignupPage = () => {
           smoking: formData.smoking,
           drinking: formData.drinking,
           interests: formData.interests.join(','),
-          bio: formData.bio,
           kakao_id: formData.kakaoId,
           marketing_agreed: agreements.marketing,
         })
@@ -628,12 +623,12 @@ const SignupPage = () => {
           </form>
         )}
 
-        {/* ── STEP 6: 관심사 + 자기소개 + 카카오ID ── */}
+        {/* ── STEP 6: 관심사 + 카카오ID ── */}
         {step === STEPS.INTERESTS_PROFILE && (
           <form onSubmit={handleInterestsProfileSubmit} className="space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-white mb-2">나를 소개해주세요</h1>
-              <p className="text-zinc-500">관심사와 자기소개로 좋은 인연을 만나요</p>
+              <p className="text-zinc-500">관심사와 카카오톡 ID를 입력해주세요</p>
             </div>
 
             {/* 관심사 */}
@@ -668,39 +663,6 @@ const SignupPage = () => {
               <p className="text-zinc-600 text-xs mt-2 text-right">{formData.interests.length}/5 선택됨</p>
             </div>
 
-            {/* 자기소개 */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-400 mb-2">
-                자기소개 <span className="text-orange-500">*</span>
-              </label>
-              {/* 가이드 칩 (가로 스크롤) */}
-              <p className="text-xs text-zinc-500 mb-2">💡 자기소개에 쓰면 좋은 주제</p>
-              <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
-                {BIO_GUIDES.map((guide) => (
-                  <button
-                    key={guide.label}
-                    type="button"
-                    onClick={() => setBioPlaceholder(guide.placeholder)}
-                    className="flex-shrink-0 py-1.5 px-3 rounded-full border border-zinc-700 bg-zinc-900 text-zinc-500 text-xs font-medium hover:border-orange-500 hover:text-orange-400 transition-all flex items-center gap-1"
-                  >
-                    <span>{guide.icon}</span>
-                    <span>{guide.label}</span>
-                  </button>
-                ))}
-              </div>
-              <textarea
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                placeholder={bioPlaceholder}
-                rows={5}
-                maxLength={300}
-                className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
-              />
-              <p className={`text-right text-xs mt-1 ${formData.bio.length < 10 ? 'text-red-500' : 'text-zinc-600'}`}>
-                {formData.bio.length}/300 (최소 10글자)
-              </p>
-            </div>
-
             {/* 카카오톡 ID */}
             <div>
               <label className="block text-sm font-medium text-zinc-400 mb-2">
@@ -719,7 +681,7 @@ const SignupPage = () => {
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <button
               type="submit"
-              disabled={formData.interests.length < 1 || !formData.kakaoId || formData.bio.length < 10}
+              disabled={formData.interests.length < 1 || !formData.kakaoId}
               className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
             >
               다음으로

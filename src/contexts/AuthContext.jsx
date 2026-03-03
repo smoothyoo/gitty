@@ -82,10 +82,14 @@ export const AuthProvider = ({ children }) => {
     setProfile(null)
   }
 
+  // 모드를 아직 선택하지 않은 경우 (소개팅도 미팅도 아님)
+  const needsModeSelect = !loading && !!user && !!profile && !profile.mode_dating && !profile.mode_meeting
+
   const value = {
     user,
     profile,
     loading,
+    needsModeSelect,
     signOut,
     refreshProfile: (userId) => fetchProfile(userId || user?.id)
   }
