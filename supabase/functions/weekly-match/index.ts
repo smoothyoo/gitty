@@ -34,8 +34,14 @@ interface User {
   interests: string
   mbti: string
   region: string
+  work_verified: boolean
   mode_dating: boolean
   mode_meeting: boolean
+}
+
+// "seoul:강남구" 에서 도시 파트만 추출
+function getRegionCity(region: string): string {
+  return region?.split(':')[0] || ''
 }
 
 // 소개팅용 궁합 점수 계산
@@ -63,13 +69,24 @@ function calcDatingScore(a: User, b: User): number {
     else if (ageDiff <= 10) score += 10
   }
 
-  // 5. 같은 지역 (10점)
-  if (a.region && b.region && a.region === b.region) score += 10
+  // 5. 지역 점수: 같은 구/시 10점, 같은 도시(서울/경기) 5점
+  if (a.region && b.region) {
+    if (a.region === b.region) {
+      score += 10 // 같은 구/시
+    } else if (getRegionCity(a.region) === getRegionCity(b.region)) {
+      score += 5  // 같은 도시
+    }
+  }
 
   // 6. MBTI 궁합 (25점)
   if (a.mbti && b.mbti) {
     const compatibleWithA = MBTI_COMPATIBILITY[a.mbti] || []
     if (compatibleWithA.includes(b.mbti)) score += 25
+  }
+
+  // 7. 직장 인증 유저끼리 보너스 (15점)
+  if (a.work_verified && b.work_verified) {
+    score += 15
   }
 
   return score
@@ -140,10 +157,10 @@ Deno.serve(async (req) => {
       }
     })
 
-    // 전체 유저 조회 (mode_dating, mode_meeting 포함)
+    // 전체 유저 조회 (mode_dating, mode_meeting, work_verified 포함)
     const { data: allUsers, error: usersError } = await supabase
       .from('users')
-      .select('id, gender, birth_year, smoking, drinking, interests, mbti, region, mode_dating, mode_meeting')
+      .select('id, gender, birth_year, smoking, drinking, interests, mbti, region, work_verified, mode_dating, mode_meeting')
 
     if (usersError) throw usersError
 
@@ -152,6 +169,7 @@ Deno.serve(async (req) => {
 
     // ══════════════════════════════════════
     // [1] 소개팅 매칭 (mode_dating = TRUE)
+    //     점수 기반 그리디 매칭
     // ══════════════════════════════════════
     const datingPool = users.filter(
       (u: User) => u.mode_dating && !datingMatchedIds.has(u.id)
@@ -212,7 +230,7 @@ Deno.serve(async (req) => {
     // ══════════════════════════════════════
     // [2] 미팅 매칭 (mode_meeting = TRUE)
     //     조건: 이성 간 + 나이 차 ±9세 이내
-    //     단순 그리디 (복잡한 점수 없이)
+    //     단순 그리디 (랜덤 셔플 후 나이 조건 우선)
     // ══════════════════════════════════════
     const meetingPool = users.filter(
       (u: User) => u.mode_meeting && !meetingMatchedIds.has(u.id)

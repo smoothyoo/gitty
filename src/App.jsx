@@ -6,6 +6,7 @@ import SignupPage from './pages/SignupPage'
 import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
+import ModeSelectPage from './pages/ModeSelectPage'
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
           } />
           <Route path="/profile" element={
             <PrivateRoute><ProfilePage /></PrivateRoute>
+          } />
+          <Route path="/mode-select" element={
+            <PrivateRoute><ModeSelectPage /></PrivateRoute>
           } />
         </Routes>
       </AuthProvider>
