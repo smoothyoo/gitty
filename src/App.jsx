@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage'
 import ProfilePage from './pages/ProfilePage'
 import ModeSelectPage from './pages/ModeSelectPage'
+import ShopPage from './pages/ShopPage'
 
 function App() {
   return (
@@ -24,6 +25,9 @@ function App() {
           } />
           <Route path="/mode-select" element={
             <PrivateRoute><ModeSelectPage /></PrivateRoute>
+          } />
+          <Route path="/shop" element={
+            <PrivateRoute><ShopPage /></PrivateRoute>
           } />
         </Routes>
       </AuthProvider>

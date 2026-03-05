@@ -3,14 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import BottomNav from '../components/BottomNav'
+import BottomSheet from '../components/BottomSheet'
 import {
   WORK_TYPE_LABELS, SMOKING_LABELS, DRINKING_LABELS,
   INTEREST_LABELS, parseInterests,
 } from '../lib/constants'
 
+// 런칭 첫 주 무료 열람 프로모션 플래그
+const KAKAO_UNLOCK_FREE = import.meta.env.VITE_KAKAO_UNLOCK_FREE === 'true'
+const KAKAO_UNLOCK_COST = 500
+
 const HomePage = () => {
   const navigate = useNavigate()
-  const { user, profile, signOut, needsModeSelect } = useAuth()
+  const { user, profile, signOut, needsModeSelect, refreshProfile } = useAuth()
 
   const [currentMatch, setCurrentMatch] = useState(null)
   const [matchedUser, setMatchedUser] = useState(null)
@@ -18,6 +23,12 @@ const HomePage = () => {
   const [matchedMeetingUser, setMatchedMeetingUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('dating') // 'dating' | 'meeting'
+
+  // 카카오 ID 열람 관련 상태
+  const [unlockTarget, setUnlockTarget] = useState(null) // { match, setMatch }
+  const [unlockConfirmOpen, setUnlockConfirmOpen] = useState(false)
+  const [unlockLoading, setUnlockLoading] = useState(false)
+  const [insufficientOpen, setInsufficientOpen] = useState(false)
 
   // 모드 미선택 시 /mode-select로 리다이렉트
   useEffect(() => {
@@ -125,6 +136,77 @@ const HomePage = () => {
     return new Date() >= new Date(match.result_date)
   }
 
+  // 현재 유저가 해당 매칭의 카카오 ID를 이미 열람했는지 확인
+  const isKakaoUnlocked = (match) => {
+    if (!match || !user) return false
+    return match.user_a === user.id ? match.kakao_unlocked_a : match.kakao_unlocked_b
+  }
+
+  // 카카오 ID 열람 버튼 클릭 핸들러
+  const handleUnlockKakao = (match, setMatch) => {
+    // 무료 프로모션 기간엔 바로 열람
+    if (KAKAO_UNLOCK_FREE) {
+      confirmUnlock(match, setMatch, true)
+      return
+    }
+    // 잔액 부족 확인
+    if ((profile?.points ?? 0) < KAKAO_UNLOCK_COST) {
+      setInsufficientOpen(true)
+      return
+    }
+    setUnlockTarget({ match, setMatch })
+    setUnlockConfirmOpen(true)
+  }
+
+  // 실제 열람 처리 (DB 업데이트)
+  const confirmUnlock = async (match, setMatch, isFree = false) => {
+    const targetMatch = match || unlockTarget?.match
+    const targetSetMatch = setMatch || unlockTarget?.setMatch
+    if (!targetMatch || !user) return
+
+    setUnlockLoading(true)
+    try {
+      const isUserA = targetMatch.user_a === user.id
+      const unlockField = isUserA ? 'kakao_unlocked_a' : 'kakao_unlocked_b'
+
+      // 1. matches 열람 플래그 업데이트
+      const { error: matchError } = await supabase
+        .from('matches')
+        .update({ [unlockField]: true })
+        .eq('id', targetMatch.id)
+      if (matchError) throw matchError
+
+      if (!isFree) {
+        // 2. 포인트 차감
+        const newPoints = (profile?.points ?? 0) - KAKAO_UNLOCK_COST
+        const { error: pointError } = await supabase
+          .from('users')
+          .update({ points: newPoints })
+          .eq('id', user.id)
+        if (pointError) throw pointError
+
+        // 3. 거래 내역 기록
+        await supabase.from('point_transactions').insert({
+          user_id: user.id,
+          type: 'use',
+          amount: -KAKAO_UNLOCK_COST,
+          description: '카카오 ID 열람',
+        })
+
+        await refreshProfile()
+      }
+
+      // 4. 로컬 상태 업데이트
+      targetSetMatch(prev => ({ ...prev, [unlockField]: true }))
+      setUnlockConfirmOpen(false)
+      setUnlockTarget(null)
+    } catch (err) {
+      console.error('unlock error:', err)
+    } finally {
+      setUnlockLoading(false)
+    }
+  }
+
   // 범용 매칭 카드 렌더러
   const renderMatchCard = (match, matchedUserData, matchType) => {
     const isDating = matchType === 'dating'
@@ -205,20 +287,50 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-2">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center">
-                  <span className="text-2xl">💬</span>
+            {isKakaoUnlocked(match) ? (
+              <>
+                <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center">
+                      <span className="text-2xl">💬</span>
+                    </div>
+                    <div>
+                      <p className="text-yellow-400 text-xs font-medium">카카오톡으로 연락해보세요!</p>
+                      <p className="text-yellow-300 font-bold text-xl">{matchedUserData?.kakao_id || '미등록'}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-yellow-400 text-xs font-medium">카카오톡으로 연락해보세요!</p>
-                  <p className="text-yellow-300 font-bold text-xl">{matchedUserData?.kakao_id || '미등록'}</p>
-                </div>
+                <p className="text-zinc-500 text-xs text-center mb-4">
+                  ⏰ 카카오톡 ID는 다음 주 매칭 전까지만 표시돼요. 꼭 이번 주에 연락하세요!
+                </p>
+              </>
+            ) : (
+              <div className="bg-zinc-800/60 rounded-2xl p-5 text-center border border-zinc-700 mb-4">
+                <div className="text-3xl mb-2">🔒</div>
+                <p className="text-white font-semibold text-sm mb-1">카카오 ID가 잠겨있어요</p>
+                {KAKAO_UNLOCK_FREE ? (
+                  <>
+                    <p className="text-emerald-400 text-xs mb-4">🎉 런칭 기념 무료 열람 이벤트!</p>
+                    <button
+                      onClick={() => handleUnlockKakao(match, setMatch)}
+                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-all"
+                    >
+                      무료로 카카오 ID 보기
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-zinc-400 text-xs mb-4">💎 {KAKAO_UNLOCK_COST}P를 사용해 열람할 수 있어요</p>
+                    <button
+                      onClick={() => handleUnlockKakao(match, setMatch)}
+                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-all"
+                    >
+                      💎 {KAKAO_UNLOCK_COST}P로 카카오 ID 보기
+                    </button>
+                  </>
+                )}
               </div>
-            </div>
-            <p className="text-zinc-500 text-xs text-center mb-4">
-              ⏰ 카카오톡 ID는 다음 주 매칭 전까지만 표시돼요. 꼭 이번 주에 연락하세요!
-            </p>
+            )}
 
             <div className="grid grid-cols-3 gap-2 mb-4">
               {[
@@ -428,10 +540,11 @@ const HomePage = () => {
         <div className="max-w-lg mx-auto px-6 py-3 flex items-center justify-between">
           <img src="/Gitty2.png" alt="GITTY" className="h-8 w-auto" />
           <button
-            onClick={async () => { await signOut(); navigate('/') }}
-            className="text-zinc-500 text-sm hover:text-zinc-300 transition-colors"
+            onClick={() => navigate('/shop')}
+            className="flex items-center gap-1.5 bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-full transition-all"
           >
-            로그아웃
+            <span className="text-sm">💎</span>
+            <span className="text-white font-bold text-sm">{profile?.points ?? 0}P</span>
           </button>
         </div>
       </header>
@@ -513,6 +626,69 @@ const HomePage = () => {
       </main>
 
       <BottomNav />
+
+      {/* 카카오 ID 열람 확인 BottomSheet */}
+      <BottomSheet
+        isOpen={unlockConfirmOpen}
+        onClose={() => { setUnlockConfirmOpen(false); setUnlockTarget(null) }}
+        title="카카오 ID 열람"
+      >
+        <div className="space-y-4">
+          <div className="bg-zinc-800 rounded-2xl p-4 space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-400">사용 포인트</span>
+              <span className="text-orange-400 font-bold">-{KAKAO_UNLOCK_COST}P</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-400">현재 잔액</span>
+              <span className="text-white font-bold">{profile?.points ?? 0}P</span>
+            </div>
+            <div className="border-t border-zinc-700 pt-3 flex justify-between text-sm">
+              <span className="text-zinc-400">차감 후 잔액</span>
+              <span className="text-zinc-300 font-bold">
+                {((profile?.points ?? 0) - KAKAO_UNLOCK_COST)}P
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={() => confirmUnlock()}
+            disabled={unlockLoading}
+            className="w-full py-4 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold rounded-2xl transition-all"
+          >
+            {unlockLoading ? '처리 중...' : `💎 ${KAKAO_UNLOCK_COST}P로 열람하기`}
+          </button>
+          <button
+            onClick={() => { setUnlockConfirmOpen(false); setUnlockTarget(null) }}
+            className="w-full py-3 text-zinc-400 text-sm"
+          >
+            취소
+          </button>
+        </div>
+      </BottomSheet>
+
+      {/* 잔액 부족 BottomSheet */}
+      <BottomSheet
+        isOpen={insufficientOpen}
+        onClose={() => setInsufficientOpen(false)}
+        title="포인트가 부족해요"
+      >
+        <div className="text-center space-y-4">
+          <div className="text-4xl">😢</div>
+          <div className="space-y-1">
+            <p className="text-zinc-400 text-sm">현재 잔액: <span className="text-white font-bold">{profile?.points ?? 0}P</span></p>
+            <p className="text-zinc-400 text-sm">카카오 ID 열람: <span className="text-orange-400 font-bold">{KAKAO_UNLOCK_COST}P 필요</span></p>
+          </div>
+          <button
+            onClick={() => { setInsufficientOpen(false); navigate('/shop') }}
+            className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-2xl transition-all"
+          >
+            💎 포인트 충전하기
+          </button>
+          <button onClick={() => setInsufficientOpen(false)} className="w-full py-3 text-zinc-400 text-sm">
+            취소
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   )
 }

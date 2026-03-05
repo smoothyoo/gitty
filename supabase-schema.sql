@@ -111,3 +111,34 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS emoji VARCHAR(10);
 -- ALTER TABLE users DROP CONSTRAINT IF EXISTS users_work_type_check;
 -- ALTER TABLE users ADD CONSTRAINT users_work_type_check
 --   CHECK (work_type IN ('large', 'mid', 'startup', 'small', 'public', 'professional', 'entrepreneur'));
+
+-- Migration: 포인트 시스템
+-- Supabase SQL Editor에서 실행:
+
+-- 1. users 테이블에 points 잔액 추가
+ALTER TABLE users ADD COLUMN IF NOT EXISTS points INTEGER DEFAULT 0;
+
+-- 2. 포인트 거래 내역 테이블
+CREATE TABLE IF NOT EXISTS point_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('purchase', 'use')),
+  amount INTEGER NOT NULL,  -- 양수: 충전, 음수: 사용
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE point_transactions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own transactions" ON point_transactions
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own transactions" ON point_transactions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE INDEX idx_point_transactions_user ON point_transactions(user_id);
+CREATE INDEX idx_point_transactions_created ON point_transactions(created_at DESC);
+
+-- 3. matches 테이블에 카카오 ID 열람 여부 추적
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS kakao_unlocked_a BOOLEAN DEFAULT FALSE;
+ALTER TABLE matches ADD COLUMN IF NOT EXISTS kakao_unlocked_b BOOLEAN DEFAULT FALSE;
