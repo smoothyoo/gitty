@@ -103,6 +103,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS work_email TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS work_company TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
 
+-- Migration: 프로필 이모지 아바타 컬럼 추가
+-- Supabase SQL Editor에서 실행:
+ALTER TABLE users ADD COLUMN IF NOT EXISTS emoji VARCHAR(10);
+
 -- work_type: 공무원/전문직 추가 (기존 CHECK 제약 업데이트)
 -- ALTER TABLE users DROP CONSTRAINT IF EXISTS users_work_type_check;
 -- ALTER TABLE users ADD CONSTRAINT users_work_type_check

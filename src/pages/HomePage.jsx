@@ -151,6 +151,10 @@ const HomePage = () => {
     return h > 0 ? `${h}시간 ${m}분 남음` : `${m}분 남음`
   }
 
+  // 유저 아바타 이모지 반환 (emoji 필드 우선, 없으면 성별 기본값)
+  const getUserEmoji = (userData) =>
+    userData?.emoji || (userData?.gender === 'male' ? '👨' : '👩')
+
   // result_date가 지났는지 확인
   const isResultReady = (match) => {
     if (!match?.result_date) return false
@@ -232,7 +236,7 @@ const HomePage = () => {
 
           <div className="p-6">
             <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
-              <span className="text-3xl">{matchedUserData?.gender === 'male' ? '👨' : '👩'}</span>
+              <span className="text-3xl">{getUserEmoji(matchedUserData)}</span>
             </div>
 
             <div className="text-center mb-6">
@@ -354,7 +358,7 @@ const HomePage = () => {
 
         <div className="px-6 pb-6 pt-2">
           <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
-            <span className="text-3xl">{matchedUserData?.gender === 'male' ? '👨' : '👩'}</span>
+            <span className="text-3xl">{getUserEmoji(matchedUserData)}</span>
           </div>
 
           <div className="text-center mb-6">
@@ -592,7 +596,7 @@ const HomePage = () => {
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center">
                             <span className="text-xl">
-                              {match.otherUser?.gender === 'male' ? '👨' : '👩'}
+                              {getUserEmoji(match.otherUser)}
                             </span>
                           </div>
                           <div>

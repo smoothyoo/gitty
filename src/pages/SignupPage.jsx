@@ -8,6 +8,7 @@ import {
   SMOKING_OPTIONS, DRINKING_OPTIONS, INTEREST_OPTIONS,
   REGIONS, PERSONAL_EMAIL_DOMAINS,
   DUMMY_SMS_CODE, SHOW_TEST_HINTS, WORK_VERIFICATION_FORM_URL,
+  AVATAR_EMOJIS,
 } from '../lib/constants'
 
 const STEPS = {
@@ -63,6 +64,7 @@ const SignupPage = () => {
     name: '',
     gender: '',
     birthYear: '',
+    emoji: '',
     regionCity: '',    // 'seoul' | 'gyeonggi'
     regionDistrict: '', // '강남구' | '성남시' 등
     workType: '',
@@ -209,6 +211,7 @@ const SignupPage = () => {
           name: formData.name,
           gender: formData.gender,
           birth_year: parseInt(formData.birthYear),
+          emoji: formData.emoji || null,
           region: regionValue,
           work_type: formData.workType,
           mbti: formData.mbti,
@@ -439,6 +442,40 @@ const SignupPage = () => {
                   max="2006"
                   className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-zinc-400 mb-2">
+                  프로필 아바타 선택 <span className="text-zinc-600 font-normal">(선택)</span>
+                </label>
+                <div className="grid grid-cols-8 gap-2">
+                  {AVATAR_EMOJIS.map((em) => (
+                    <button
+                      key={em}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, emoji: em })}
+                      className={`aspect-square flex items-center justify-center text-2xl rounded-xl transition-all ${
+                        formData.emoji === em
+                          ? 'bg-orange-500/20 ring-2 ring-orange-500 scale-110'
+                          : 'bg-zinc-900 hover:bg-zinc-800 border border-zinc-800'
+                      }`}
+                    >
+                      {em}
+                    </button>
+                  ))}
+                </div>
+                {formData.emoji && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="text-2xl">{formData.emoji}</span>
+                    <span className="text-zinc-400 text-sm">선택됨</span>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, emoji: '' })}
+                      className="text-zinc-600 text-xs hover:text-zinc-400 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
