@@ -17,9 +17,7 @@ const HomePage = () => {
   const [currentMeetingMatch, setCurrentMeetingMatch] = useState(null)
   const [matchedMeetingUser, setMatchedMeetingUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [matchHistory, setMatchHistory] = useState([])
-  const [activeTab, setActiveTab] = useState('today')
-  const [activeMode, setActiveMode] = useState('dating') // 'dating' | 'meeting'
+  const [activeTab, setActiveTab] = useState('dating') // 'dating' | 'meeting'
 
   // 모드 미선택 시 /mode-select로 리다이렉트
   useEffect(() => {
@@ -28,8 +26,6 @@ const HomePage = () => {
 
   useEffect(() => {
     if (user && profile && !needsModeSelect) {
-      // 초기 활성 모드 설정
-      setActiveMode(profile.mode_dating ? 'dating' : 'meeting')
       fetchData()
     }
   }, [user, profile?.id])
@@ -76,41 +72,10 @@ const HomePage = () => {
       setMatchedUser(datingUser)
       setCurrentMeetingMatch(meetingMatch)
       setMatchedMeetingUser(meetingUser)
-
-      await fetchMatchHistory()
     } catch (err) {
       console.error('fetchData error:', err)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const fetchMatchHistory = async () => {
-    try {
-      const { data: matches, error } = await supabase
-        .from('matches')
-        .select('*')
-        .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
-        .order('cycle_start', { ascending: false })
-        .limit(20)
-
-      if (error) throw error
-      if (!matches || matches.length === 0) { setMatchHistory([]); return }
-
-      const otherUserIds = [...new Set(matches.map(m => m.user_a === user.id ? m.user_b : m.user_a))]
-      const { data: otherUsers } = await supabase.from('users').select('*').in('id', otherUserIds)
-
-      const userMap = {}
-      ;(otherUsers || []).forEach(u => { userMap[u.id] = u })
-
-      setMatchHistory(matches.map(match => ({
-        ...match,
-        otherUser: userMap[match.user_a === user.id ? match.user_b : match.user_a] || null,
-        myResponse: match.user_a === user.id ? match.response_a : match.response_b,
-        theirResponse: match.user_a === user.id ? match.response_b : match.response_a,
-      })))
-    } catch (err) {
-      console.error('fetchMatchHistory error:', err)
     }
   }
 
@@ -130,7 +95,6 @@ const HomePage = () => {
       if (error) throw error
 
       setMatch({ ...match, ...updateData })
-      fetchMatchHistory()
     } catch (err) {
       console.error('handleResponse error:', err)
     }
@@ -159,18 +123,6 @@ const HomePage = () => {
   const isResultReady = (match) => {
     if (!match?.result_date) return false
     return new Date() >= new Date(match.result_date)
-  }
-
-  const getMatchSummary = (match, matchType) => {
-    if (!match) return matchType === 'dating' ? '매칭 준비 중' : '미팅 준비 중'
-    if (match.status === 'no_match') return '상대 없음'
-    if (match.status === 'matched' || match.status === 'rejected') {
-      if (!isResultReady(match)) return '결과 대기 중'
-      return match.status === 'matched' ? '🎉 성사!' : '이번엔 불발'
-    }
-    const myResp = getMyResponse(match)
-    if (myResp === null) return '응답 대기'
-    return isResultReady(match) ? (myResp === true ? '수락함 ✓' : '거절함') : '결과 대기 중'
   }
 
   // 범용 매칭 카드 렌더러
@@ -253,7 +205,7 @@ const HomePage = () => {
               </div>
             </div>
 
-            <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-4">
+            <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-2">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center">
                   <span className="text-2xl">💬</span>
@@ -264,6 +216,9 @@ const HomePage = () => {
                 </div>
               </div>
             </div>
+            <p className="text-zinc-500 text-xs text-center mb-4">
+              ⏰ 카카오톡 ID는 다음 주 매칭 전까지만 표시돼요. 꼭 이번 주에 연락하세요!
+            </p>
 
             <div className="grid grid-cols-3 gap-2 mb-4">
               {[
@@ -458,12 +413,6 @@ const HomePage = () => {
     )
   }
 
-  const getStatusLabel = (match) => {
-    if (match.status === 'matched') return { text: '성사', color: 'bg-green-500/15 text-green-400' }
-    if (match.status === 'rejected') return { text: '불발', color: 'bg-zinc-700 text-zinc-400' }
-    return { text: '진행중', color: 'bg-orange-500/15 text-orange-400' }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-900 flex items-center justify-center">
@@ -471,10 +420,6 @@ const HomePage = () => {
       </div>
     )
   }
-
-  const hasDating = profile?.mode_dating
-  const hasMeeting = profile?.mode_meeting
-  const bothModes = hasDating && hasMeeting
 
   return (
     <div className="min-h-screen bg-zinc-900 pb-24">
@@ -495,8 +440,8 @@ const HomePage = () => {
       <div className="max-w-lg mx-auto px-6 pt-4">
         <div className="flex gap-2 bg-zinc-800 p-1 rounded-xl">
           {[
-            { key: 'today', label: '매칭현황' },
-            { key: 'history', label: '결과안내' },
+            { key: 'dating', label: '💑 소개팅' },
+            { key: 'meeting', label: '🎉 미팅' },
           ].map(({ key, label }) => (
             <button
               key={key}
@@ -513,127 +458,57 @@ const HomePage = () => {
 
       {/* Content */}
       <main className="max-w-lg mx-auto px-6 py-6">
-        {activeTab === 'today' && (
-          <>
-            <div className="mb-6">
-              <h1 className="text-xl font-bold text-white">
-                안녕하세요, {profile?.name || '회원'}님!
-              </h1>
-              <p className="text-zinc-500 text-sm mt-1">
-                {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
-              </p>
+        <div className="mb-6">
+          <h1 className="text-xl font-bold text-white">
+            안녕하세요, {profile?.name || '회원'}님!
+          </h1>
+          <p className="text-zinc-500 text-sm mt-1">
+            {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
+          </p>
+        </div>
+
+        {/* 직장 인증 유도 카드 */}
+        {profile && !profile.work_verified && (
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-full mb-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-center gap-3 hover:bg-orange-500/15 transition-all text-left"
+          >
+            <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">🔥</span>
             </div>
-
-            {/* 직장 인증 유도 카드 */}
-            {profile && !profile.work_verified && (
-              <button
-                onClick={() => navigate('/profile')}
-                className="w-full mb-4 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex items-center gap-3 hover:bg-orange-500/15 transition-all text-left"
-              >
-                <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl">🔥</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-orange-400 font-semibold text-sm">직장 인증하고 매칭률 올리기</p>
-                  <p className="text-orange-400/70 text-xs mt-0.5">인증 뱃지 획득 · 매칭 점수 +15점</p>
-                </div>
-                <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-
-            {/* 듀얼 모드: 2컬럼 탭 셀렉터 */}
-            {bothModes && (
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {[
-                  { mode: 'dating', emoji: '💑', label: '소개팅', match: currentMatch },
-                  { mode: 'meeting', emoji: '🎉', label: '미팅', match: currentMeetingMatch },
-                ].map(({ mode, emoji, label, match }) => (
-                  <button
-                    key={mode}
-                    onClick={() => setActiveMode(mode)}
-                    className={`p-4 rounded-2xl border-2 transition-all text-left ${
-                      activeMode === mode
-                        ? 'border-orange-500 bg-orange-500/10'
-                        : 'border-zinc-700 bg-zinc-800 hover:border-zinc-600'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-lg">{emoji}</span>
-                      <span className="text-white font-semibold text-sm">{label}</span>
-                    </div>
-                    <p className="text-zinc-400 text-xs">{getMatchSummary(match, mode)}</p>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* 매칭 카드 */}
-            {hasDating && (!bothModes || activeMode === 'dating') &&
-              renderMatchCard(currentMatch, matchedUser, 'dating')}
-            {hasMeeting && (!bothModes || activeMode === 'meeting') &&
-              renderMatchCard(currentMeetingMatch, matchedMeetingUser, 'meeting')}
-          </>
+            <div className="flex-1 min-w-0">
+              <p className="text-orange-400 font-semibold text-sm">직장 인증하고 매칭률 올리기</p>
+              <p className="text-orange-400/70 text-xs mt-0.5">인증 뱃지 획득 · 매칭 점수 +15점</p>
+            </div>
+            <svg className="w-4 h-4 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         )}
 
-        {activeTab === 'history' && (
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold text-white">매칭 히스토리</h2>
+        {/* 소개팅 탭 */}
+        {activeTab === 'dating' && renderMatchCard(currentMatch, matchedUser, 'dating')}
 
-            {matchHistory.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-zinc-500">아직 매칭 기록이 없어요</p>
+        {/* 미팅 탭 */}
+        {activeTab === 'meeting' && (
+          profile?.mode_meeting
+            ? renderMatchCard(currentMeetingMatch, matchedMeetingUser, 'meeting')
+            : (
+              <div className="bg-zinc-800 rounded-3xl p-8 text-center">
+                <span className="text-5xl mb-4 block">🎉</span>
+                <h2 className="text-xl font-bold text-white mb-2">미팅도 해보세요!</h2>
+                <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                  여럿이서 함께하는 미팅 매칭이에요.<br />
+                  자기소개를 적고 미팅 매칭을 활성화해보세요!
+                </p>
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all"
+                >
+                  미팅 활성화하기
+                </button>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {matchHistory.map((match) => {
-                  const statusLabel = getStatusLabel(match)
-                  const isMeeting = match.match_type === 'meeting'
-                  return (
-                    <div key={match.id} className="bg-zinc-800 rounded-2xl p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center">
-                            <span className="text-xl">
-                              {getUserEmoji(match.otherUser)}
-                            </span>
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <p className="font-medium text-white">
-                                {match.status === 'matched'
-                                  ? match.otherUser?.name
-                                  : `${match.otherUser?.name?.charAt(0)}**`} 님
-                              </p>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                isMeeting ? 'bg-purple-500/15 text-purple-400' : 'bg-zinc-700 text-zinc-400'
-                              }`}>
-                                {isMeeting ? '미팅' : '소개팅'}
-                              </span>
-                            </div>
-                            <p className="text-zinc-500 text-xs">
-                              {new Date(match.cycle_start).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
-                            </p>
-                          </div>
-                        </div>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusLabel.color}`}>
-                          {statusLabel.text}
-                        </span>
-                      </div>
-
-                      {match.status === 'matched' && (
-                        <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                          <p className="text-yellow-400 text-xs">카카오톡 ID</p>
-                          <p className="text-yellow-300 font-bold">{match.otherUser?.kakao_id || '미등록'}</p>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+            )
         )}
       </main>
 
