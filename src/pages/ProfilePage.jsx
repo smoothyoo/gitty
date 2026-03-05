@@ -752,7 +752,7 @@ const ProfilePage = () => {
 
       {/* 아바타 이모지 선택 */}
       <BottomSheet isOpen={emojiSheetOpen} onClose={() => setEmojiSheetOpen(false)} title="아바타 선택" maxHeight>
-        <p className="text-zinc-400 text-sm mb-4">동물 이모지 중 마음에 드는 걸 골라보세요!</p>
+        <p className="text-zinc-400 text-sm mb-4">나를 표현하는 캐릭터를 골라보세요!</p>
         <div className="grid grid-cols-8 gap-3 mb-4">
           {AVATAR_EMOJIS.map((em) => (
             <button
