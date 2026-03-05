@@ -28,7 +28,7 @@ const LandingPage = () => {
           <div className="w-40 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col items-center gap-2.5 p-4">
             {/* Avatar */}
             <div className="w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center">
-              <span className="text-3xl">👨‍💼</span>
+              <span className="text-3xl">🐱</span>
             </div>
             {/* Name & info */}
             <div className="text-center">
@@ -66,7 +66,7 @@ const LandingPage = () => {
           <div className="w-40 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col items-center gap-2.5 p-4">
             {/* Avatar */}
             <div className="w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center">
-              <span className="text-3xl">👩‍💼</span>
+              <span className="text-3xl">🐶</span>
             </div>
             {/* Name & info */}
             <div className="text-center">
