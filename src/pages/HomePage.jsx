@@ -151,14 +151,22 @@ const HomePage = () => {
     return h > 0 ? `${h}시간 ${m}분 남음` : `${m}분 남음`
   }
 
+  // result_date가 지났는지 확인
+  const isResultReady = (match) => {
+    if (!match?.result_date) return false
+    return new Date() >= new Date(match.result_date)
+  }
+
   const getMatchSummary = (match, matchType) => {
     if (!match) return matchType === 'dating' ? '매칭 준비 중' : '미팅 준비 중'
-    if (match.status === 'matched') return '🎉 성사!'
-    if (match.status === 'rejected') return '이번엔 불발'
     if (match.status === 'no_match') return '상대 없음'
+    if (match.status === 'matched' || match.status === 'rejected') {
+      if (!isResultReady(match)) return '결과 대기 중'
+      return match.status === 'matched' ? '🎉 성사!' : '이번엔 불발'
+    }
     const myResp = getMyResponse(match)
     if (myResp === null) return '응답 대기'
-    return myResp === true ? '수락함 ✓' : '거절함'
+    return isResultReady(match) ? (myResp === true ? '수락함 ✓' : '거절함') : '결과 대기 중'
   }
 
   // 범용 매칭 카드 렌더러
@@ -169,6 +177,7 @@ const HomePage = () => {
     const myResponse = getMyResponse(match)
     const theirResponse = getTheirResponse(match)
     const status = match?.status
+    const resultReady = isResultReady(match)
 
     // 매칭 없음 (준비 중)
     if (!match) {
@@ -181,10 +190,30 @@ const HomePage = () => {
             {isDating ? '매칭 준비 중이에요' : '미팅 매칭 준비 중이에요'}
           </h2>
           <p className="text-zinc-400 text-sm leading-relaxed">
-            {isDating
-              ? '내일 오후 1시에 매칭 상대가 공개돼요!\n조금만 기다려주세요'
-              : '이번 주 미팅 매칭 결과를\n기다려주세요!'}
+            다음 주 월요일 오후 1시에 매칭 상대가 공개돼요!<br />조금만 기다려주세요
           </p>
+        </div>
+      )
+    }
+
+    // 결과 공개 전 대기 카드 (응답 완료 or 결과 집계 중)
+    if ((status === 'matched' || status === 'rejected' || (myResponse !== null && status === 'waiting')) && !resultReady) {
+      const resultDate = match.result_date
+        ? new Date(match.result_date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '내일'
+      return (
+        <div className="bg-zinc-800 rounded-3xl p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
+            <span className="text-4xl">⏳</span>
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">응답이 완료됐어요!</h2>
+          <p className="text-zinc-400 text-sm leading-relaxed">
+            상대방의 응답까지 확인 후<br />결과를 함께 공개해드릴게요 😊
+          </p>
+          <div className="mt-4 inline-flex items-center gap-2 bg-zinc-700 px-4 py-2 rounded-full">
+            <span className="text-zinc-400 text-xs">결과 공개</span>
+            <span className="text-white text-xs font-medium">{resultDate}</span>
+          </div>
         </div>
       )
     }
@@ -271,7 +300,7 @@ const HomePage = () => {
       )
     }
 
-    // 거절됨
+    // 거절됨 (result_date 이후)
     if (status === 'rejected') {
       const rejectionTitle = myResponse === false
         ? '매칭을 거절했어요'
@@ -290,7 +319,7 @@ const HomePage = () => {
             <span className="text-4xl">😢</span>
           </div>
           <h2 className="text-xl font-bold text-white mb-2">{rejectionTitle}</h2>
-          <p className="text-zinc-400 text-sm">{rejectionDesc}<br />내일 오후 1시에 새로운 분을 소개해드릴게요</p>
+          <p className="text-zinc-400 text-sm">{rejectionDesc}<br />다음 주 월요일에 새로운 분을 소개해드릴게요</p>
         </div>
       )
     }
@@ -305,7 +334,7 @@ const HomePage = () => {
           <h2 className="text-xl font-bold text-white mb-2">이번 주는 상대를 못 찾았어요</h2>
           <p className="text-zinc-400 text-sm">
             {isDating ? '자기소개를 더 자세히 쓰면 매칭 확률이 높아져요!' : '미팅 의사가 있는 분이 이번엔 없었어요.'}<br />
-            내일 오후 1시에 다시 매칭해드릴게요
+            다음 주 월요일 오후 1시에 다시 매칭해드릴게요
           </p>
         </div>
       )
@@ -418,31 +447,7 @@ const HomePage = () => {
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-4">
-                {myResponse === true ? (
-                  <div>
-                    <div className="inline-flex items-center gap-2 bg-orange-500/15 text-orange-400 px-4 py-2 rounded-full mb-2">
-                      <span className="font-medium">{isDating ? '매칭할래요를 선택했어요!' : '미팅할래요를 선택했어요!'}</span>
-                    </div>
-                    <p className="text-zinc-400 text-sm">
-                      {theirResponse === null
-                        ? '상대방의 응답을 기다리고 있어요...'
-                        : theirResponse === true
-                        ? '상대방도 수락했어요! 결과를 기다려주세요'
-                        : '상대방이 거절했어요'}
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="inline-flex items-center gap-2 bg-zinc-700 text-zinc-400 px-4 py-2 rounded-full mb-2">
-                      <span className="font-medium">{isDating ? '매칭 안할래요를 선택했어요' : '미팅 안할래요를 선택했어요'}</span>
-                    </div>
-                    <p className="text-zinc-500 text-sm">다음 매칭을 기다려주세요!</p>
-                  </div>
-                )}
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
