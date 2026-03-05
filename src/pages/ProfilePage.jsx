@@ -11,6 +11,7 @@ import {
   INTEREST_OPTIONS, INTEREST_LABELS, parseInterests,
   REGIONS, PERSONAL_EMAIL_DOMAINS,
   DUMMY_SMS_CODE, SHOW_TEST_HINTS, WORK_VERIFICATION_FORM_URL,
+  AVATAR_EMOJIS,
 } from '../lib/constants'
 
 // "seoul:강남구" → "서울 강남구"
@@ -41,6 +42,7 @@ const ProfilePage = () => {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [bioPlaceholder, setBioPlaceholder] = useState('자유롭게 자신을 소개해주세요 😊')
+  const [emojiSheetOpen, setEmojiSheetOpen] = useState(false)
 
   const [phoneStep, setPhoneStep] = useState('input')
   const [newPhone, setNewPhone] = useState('')
@@ -161,6 +163,19 @@ const ProfilePage = () => {
     }
   }
 
+  const handleEmojiSelect = async (em) => {
+    setSaving(true)
+    try {
+      await supabase.from('users').update({ emoji: em }).eq('id', user.id)
+      await refreshProfile(user.id)
+      setEmojiSheetOpen(false)
+    } catch (err) {
+      console.error('Emoji update error:', err)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const handlePhoneSendCode = () => {
     if (newPhone.length < 10) { setError('올바른 전화번호를 입력해주세요'); return }
     setError('')
@@ -262,11 +277,17 @@ const ProfilePage = () => {
         {/* Profile Card */}
         <div className="bg-zinc-800 rounded-3xl overflow-hidden mb-4">
           <div className="bg-gradient-to-br from-orange-500 to-orange-900 px-6 py-8">
-            <div className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4">
+            <button
+              onClick={() => setEmojiSheetOpen(true)}
+              className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4 relative hover:bg-white/30 transition-all cursor-pointer"
+            >
               <span className="text-4xl">
-                {profile?.gender === 'male' ? '👨' : '👩'}
+                {profile?.emoji || (profile?.gender === 'male' ? '👨' : '👩')}
               </span>
-            </div>
+              <span className="absolute bottom-0 right-0 w-6 h-6 bg-zinc-700 rounded-full flex items-center justify-center text-xs border-2 border-orange-900">
+                ✏️
+              </span>
+            </button>
             <h2 className="text-center text-white text-xl font-bold">{profile?.name || '이름 없음'}</h2>
             <p className="text-center text-white/80 text-sm mt-1">
               {profile?.birth_year ? `${new Date().getFullYear() - profile.birth_year + 1}세` : ''} · {profile?.gender === 'male' ? '남성' : '여성'}
@@ -727,6 +748,36 @@ const ProfilePage = () => {
         <p className="text-zinc-500 text-xs mb-4">매칭 성사 시 상대방에게 공개됩니다</p>
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
         <ModalButtons onCancel={closeEditModal} onSave={handleSave} disabled={!editValue} />
+      </BottomSheet>
+
+      {/* 아바타 이모지 선택 */}
+      <BottomSheet isOpen={emojiSheetOpen} onClose={() => setEmojiSheetOpen(false)} title="아바타 선택" maxHeight>
+        <p className="text-zinc-400 text-sm mb-4">동물 이모지 중 마음에 드는 걸 골라보세요!</p>
+        <div className="grid grid-cols-8 gap-3 mb-4">
+          {AVATAR_EMOJIS.map((em) => (
+            <button
+              key={em}
+              onClick={() => handleEmojiSelect(em)}
+              disabled={saving}
+              className={`aspect-square flex items-center justify-center text-3xl rounded-xl transition-all ${
+                profile?.emoji === em
+                  ? 'bg-orange-500/20 ring-2 ring-orange-500 scale-110'
+                  : 'bg-zinc-800 hover:bg-zinc-700'
+              }`}
+            >
+              {em}
+            </button>
+          ))}
+        </div>
+        {profile?.emoji && (
+          <button
+            onClick={() => handleEmojiSelect(null)}
+            disabled={saving}
+            className="w-full py-3 text-zinc-500 text-sm hover:text-zinc-300 transition-colors"
+          >
+            기본값으로 되돌리기 ({profile?.gender === 'male' ? '👨' : '👩'})
+          </button>
+        )}
       </BottomSheet>
 
       {/* 직장 인증 모달 */}
