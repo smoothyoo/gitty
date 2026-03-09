@@ -9,8 +9,6 @@ import {
   INTEREST_LABELS, parseInterests,
 } from '../lib/constants'
 
-// 런칭 첫 주 무료 열람 프로모션 플래그
-const KAKAO_UNLOCK_FREE = import.meta.env.VITE_KAKAO_UNLOCK_FREE === 'true'
 const KAKAO_UNLOCK_COST = 500
 
 const HomePage = () => {
@@ -144,11 +142,6 @@ const HomePage = () => {
 
   // 카카오 ID 열람 버튼 클릭 핸들러
   const handleUnlockKakao = (match, setMatch) => {
-    // 무료 프로모션 기간엔 바로 열람
-    if (KAKAO_UNLOCK_FREE) {
-      confirmUnlock(match, setMatch, true)
-      return
-    }
     // 잔액 부족 확인
     if ((profile?.points ?? 0) < KAKAO_UNLOCK_COST) {
       setInsufficientOpen(true)
@@ -159,7 +152,7 @@ const HomePage = () => {
   }
 
   // 실제 열람 처리 (DB 업데이트)
-  const confirmUnlock = async (match, setMatch, isFree = false) => {
+  const confirmUnlock = async (match, setMatch) => {
     const targetMatch = match || unlockTarget?.match
     const targetSetMatch = setMatch || unlockTarget?.setMatch
     if (!targetMatch || !user) return
@@ -176,25 +169,23 @@ const HomePage = () => {
         .eq('id', targetMatch.id)
       if (matchError) throw matchError
 
-      if (!isFree) {
-        // 2. 포인트 차감
-        const newPoints = (profile?.points ?? 0) - KAKAO_UNLOCK_COST
-        const { error: pointError } = await supabase
-          .from('users')
-          .update({ points: newPoints })
-          .eq('id', user.id)
-        if (pointError) throw pointError
+      // 2. 포인트 차감
+      const newPoints = (profile?.points ?? 0) - KAKAO_UNLOCK_COST
+      const { error: pointError } = await supabase
+        .from('users')
+        .update({ points: newPoints })
+        .eq('id', user.id)
+      if (pointError) throw pointError
 
-        // 3. 거래 내역 기록
-        await supabase.from('point_transactions').insert({
-          user_id: user.id,
-          type: 'use',
-          amount: -KAKAO_UNLOCK_COST,
-          description: '카카오 ID 열람',
-        })
+      // 3. 거래 내역 기록
+      await supabase.from('point_transactions').insert({
+        user_id: user.id,
+        type: 'use',
+        amount: -KAKAO_UNLOCK_COST,
+        description: '카카오 ID 열람',
+      })
 
-        await refreshProfile()
-      }
+      await refreshProfile()
 
       // 4. 로컬 상태 업데이트
       targetSetMatch(prev => ({ ...prev, [unlockField]: true }))
@@ -330,27 +321,13 @@ const HomePage = () => {
               <div className="bg-zinc-800/60 rounded-2xl p-5 text-center border border-zinc-700 mb-4">
                 <div className="text-3xl mb-2">🔒</div>
                 <p className="text-white font-semibold text-sm mb-1">카카오 ID가 잠겨있어요</p>
-                {KAKAO_UNLOCK_FREE ? (
-                  <>
-                    <p className="text-emerald-400 text-xs mb-4">🎉 런칭 기념 무료 열람 이벤트!</p>
-                    <button
-                      onClick={() => handleUnlockKakao(match, setMatch)}
-                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-all"
-                    >
-                      무료로 카카오 ID 보기
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-zinc-400 text-xs mb-4">💎 {KAKAO_UNLOCK_COST}P를 사용해 열람할 수 있어요</p>
-                    <button
-                      onClick={() => handleUnlockKakao(match, setMatch)}
-                      className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-all"
-                    >
-                      💎 {KAKAO_UNLOCK_COST}P로 카카오 ID 보기
-                    </button>
-                  </>
-                )}
+                <p className="text-zinc-400 text-xs mb-4">💎 {KAKAO_UNLOCK_COST}P를 사용해 열람할 수 있어요</p>
+                <button
+                  onClick={() => handleUnlockKakao(match, setMatch)}
+                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold rounded-xl transition-all"
+                >
+                  💎 {KAKAO_UNLOCK_COST}P로 카카오 ID 보기
+                </button>
               </div>
             )}
 
