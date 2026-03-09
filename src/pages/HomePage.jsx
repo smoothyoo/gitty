@@ -169,10 +169,10 @@ const HomePage = () => {
       const isUserA = targetMatch.user_a === user.id
       const unlockField = isUserA ? 'kakao_unlocked_a' : 'kakao_unlocked_b'
 
-      // 1. matches 열람 플래그 업데이트
+      // 1. matches 열람 플래그 업데이트 (남성 결제 시 양쪽 모두 공개)
       const { error: matchError } = await supabase
         .from('matches')
-        .update({ [unlockField]: true })
+        .update({ kakao_unlocked_a: true, kakao_unlocked_b: true })
         .eq('id', targetMatch.id)
       if (matchError) throw matchError
 
@@ -288,6 +288,7 @@ const HomePage = () => {
             </div>
 
             {isKakaoUnlocked(match) ? (
+              // 열람 완료 (양쪽 공통)
               <>
                 <div className="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl mb-2">
                   <div className="flex items-center gap-3">
@@ -304,7 +305,17 @@ const HomePage = () => {
                   ⏰ 카카오톡 ID는 다음 주 매칭 전까지만 표시돼요. 꼭 이번 주에 연락하세요!
                 </p>
               </>
+            ) : profile?.gender === 'female' ? (
+              // 여성: 결제 버튼 없이 대기 메시지
+              <div className="bg-zinc-800/60 rounded-2xl p-5 text-center border border-zinc-700 mb-4">
+                <div className="text-3xl mb-2">💬</div>
+                <p className="text-white font-semibold text-sm mb-1">연락처 공개 대기 중</p>
+                <p className="text-zinc-400 text-xs leading-relaxed">
+                  상대방이 연락처를 열람하면<br />함께 공개돼요
+                </p>
+              </div>
             ) : (
+              // 남성: 결제 버튼
               <div className="bg-zinc-800/60 rounded-2xl p-5 text-center border border-zinc-700 mb-4">
                 <div className="text-3xl mb-2">🔒</div>
                 <p className="text-white font-semibold text-sm mb-1">카카오 ID가 잠겨있어요</p>
