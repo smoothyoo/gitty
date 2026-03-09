@@ -225,6 +225,20 @@ Deno.serve(async (req) => {
           status: 'no_match',
         })
       }
+    } else {
+      // 한쪽 성별이 없으면 나머지 전원 no_match 처리 (fix: 조기 반환 없이 레코드 생성)
+      const allUnmatched = [...datingMales, ...datingFemales]
+      for (const u of allUnmatched) {
+        allInserts.push({
+          user_a: u.id,
+          user_b: u.id,
+          match_type: 'dating',
+          cycle_start: today,
+          response_deadline: new Date().toISOString(),
+          result_date: new Date().toISOString(),
+          status: 'no_match',
+        })
+      }
     }
 
     // ══════════════════════════════════════
