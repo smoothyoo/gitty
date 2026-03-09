@@ -142,3 +142,27 @@ CREATE INDEX idx_point_transactions_created ON point_transactions(created_at DES
 -- 3. matches 테이블에 카카오 ID 열람 여부 추적
 ALTER TABLE matches ADD COLUMN IF NOT EXISTS kakao_unlocked_a BOOLEAN DEFAULT FALSE;
 ALTER TABLE matches ADD COLUMN IF NOT EXISTS kakao_unlocked_b BOOLEAN DEFAULT FALSE;
+
+-- Migration: 직장 이메일 인증 코드 테이블
+-- Supabase SQL Editor에서 실행:
+
+CREATE TABLE IF NOT EXISTS work_verification_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  code VARCHAR(6) NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE work_verification_codes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own verification codes" ON work_verification_codes
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own verification codes" ON work_verification_codes
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE INDEX idx_work_verification_codes_user ON work_verification_codes(user_id);
+CREATE INDEX idx_work_verification_codes_email ON work_verification_codes(email);

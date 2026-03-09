@@ -213,27 +213,40 @@ const ProfilePage = () => {
     return !domain || PERSONAL_EMAIL_DOMAINS.includes(domain)
   }
 
-  const handleWorkEmailSend = () => {
+  const handleWorkEmailSend = async () => {
     setWorkVerifyError('')
     if (!workEmail.includes('@')) { setWorkVerifyError('올바른 이메일 주소를 입력해주세요'); return }
     if (isPersonalEmail(workEmail)) { setWorkVerifyError('개인 이메일은 사용할 수 없어요. 회사 이메일을 입력해주세요.'); return }
     setWorkVerifyLoading(true)
-    setTimeout(() => { setWorkVerifyLoading(false); setWorkCodeSent(true) }, 1000)
+    try {
+      const { data, error } = await supabase.functions.invoke('send-work-verification', {
+        body: { email: workEmail, userId: user.id },
+      })
+      if (error || data?.error) {
+        setWorkVerifyError(data?.error || '이메일 전송에 실패했어요. 잠시 후 다시 시도해주세요.')
+        return
+      }
+      setWorkCodeSent(true)
+    } catch (err) {
+      console.error('Work email send error:', err)
+      setWorkVerifyError('이메일 전송에 실패했어요. 잠시 후 다시 시도해주세요.')
+    } finally {
+      setWorkVerifyLoading(false)
+    }
   }
 
   const handleWorkVerifyCode = async () => {
     setWorkVerifyError('')
-    if (workVerifyCode !== DUMMY_SMS_CODE) { setWorkVerifyError('인증코드가 일치하지 않습니다'); return }
+    if (workVerifyCode.length < 6) { setWorkVerifyError('6자리 인증코드를 입력해주세요'); return }
     setWorkVerifyLoading(true)
     try {
-      const domain = workEmail.split('@')[1]
-      const company = domain.split('.')[0]
-      await supabase.from('users').update({
-        work_verified: true,
-        work_email: workEmail,
-        work_company: company,
-        verified_at: new Date().toISOString(),
-      }).eq('id', user.id)
+      const { data, error } = await supabase.functions.invoke('verify-work-code', {
+        body: { userId: user.id, email: workEmail, code: workVerifyCode },
+      })
+      if (error || data?.error) {
+        setWorkVerifyError(data?.error || '인증코드가 일치하지 않거나 만료되었습니다')
+        return
+      }
       await refreshProfile(user.id)
       setEditModal(null)
       setWorkEmail(''); setWorkVerifyCode(''); setWorkCodeSent(false)
@@ -817,18 +830,16 @@ const ProfilePage = () => {
                   type="text"
                   value={workVerifyCode}
                   onChange={(e) => setWorkVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
-                  placeholder="1234"
-                  className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                  maxLength={4}
+                  placeholder="123456"
+                  className="w-full px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-xl text-white text-lg text-center tracking-[0.5em] placeholder:tracking-normal placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                  maxLength={6}
                 />
-                {SHOW_TEST_HINTS && (
-                  <p className="text-zinc-500 text-xs mt-2 text-center">테스트용 인증코드: {DUMMY_SMS_CODE}</p>
-                )}
+                <p className="text-zinc-500 text-xs mt-2 text-center">이메일로 발송된 6자리 코드를 입력해주세요</p>
               </div>
               {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
               <button
                 onClick={handleWorkVerifyCode}
-                disabled={workVerifyCode.length < 4 || workVerifyLoading}
+                disabled={workVerifyCode.length < 6 || workVerifyLoading}
                 className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl disabled:bg-zinc-800 disabled:text-zinc-600 transition-all"
               >
                 {workVerifyLoading ? '인증 중...' : '인증 완료'}
