@@ -301,8 +301,19 @@ const HomePage = () => {
                     </div>
                   </div>
                 </div>
-                <p className="text-zinc-500 text-xs text-center mb-4">
+                <p className="text-zinc-500 text-xs text-center mb-2">
                   ⏰ 카카오톡 ID는 다음 주 매칭 전까지만 표시돼요. 꼭 이번 주에 연락하세요!
+                </p>
+                <p className="text-zinc-600 text-xs text-center mb-4">
+                  ID가 맞지 않거나 문제가 있으신가요?{' '}
+                  <a
+                    href="https://n08x4.channel.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-zinc-500 underline underline-offset-2 hover:text-zinc-300 transition-colors"
+                  >
+                    고객센터 문의
+                  </a>
                 </p>
               </>
             ) : profile?.gender === 'female' ? (
