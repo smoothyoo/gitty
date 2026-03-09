@@ -299,6 +299,20 @@ Deno.serve(async (req) => {
           status: 'no_match',
         })
       }
+    } else {
+      // 한쪽 성별이 없으면 나머지 전원 no_match 처리 (fix: 소개팅과 동일한 버그 수정)
+      const allUnmatched = [...meetingMales, ...meetingFemales]
+      for (const u of allUnmatched) {
+        allInserts.push({
+          user_a: u.id,
+          user_b: u.id,
+          match_type: 'meeting',
+          cycle_start: today,
+          response_deadline: new Date().toISOString(),
+          result_date: new Date().toISOString(),
+          status: 'no_match',
+        })
+      }
     }
 
     // ──────────────────────────────────────
