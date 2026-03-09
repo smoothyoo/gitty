@@ -52,6 +52,27 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // Rate limiting: 60초 이내 재요청 차단
+    const sixtySecondsAgo = new Date(Date.now() - 60 * 1000).toISOString()
+    const { data: recentCode } = await supabase
+      .from('work_verification_codes')
+      .select('created_at')
+      .eq('user_id', userId)
+      .eq('verified', false)
+      .gte('created_at', sixtySecondsAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (recentCode) {
+      const sentAt = new Date(recentCode.created_at).getTime()
+      const remaining = Math.ceil((sentAt + 60000 - Date.now()) / 1000)
+      return new Response(
+        JSON.stringify({ error: `${remaining}초 후에 다시 시도해주세요.`, remaining }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // 6자리 인증코드 생성
     const code = String(Math.floor(100000 + Math.random() * 900000))
 
@@ -100,7 +121,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Gitty <onboarding@resend.dev>',
+        from: 'Gitty <verify@gitty.kr>',
         to: email,
         subject: '[Gitty] 직장 인증 코드',
         html: `

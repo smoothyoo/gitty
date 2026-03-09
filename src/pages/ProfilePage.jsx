@@ -54,6 +54,7 @@ const ProfilePage = () => {
   const [workCodeSent, setWorkCodeSent] = useState(false)
   const [workVerifyLoading, setWorkVerifyLoading] = useState(false)
   const [workVerifyError, setWorkVerifyError] = useState('')
+  const [resendCooldown, setResendCooldown] = useState(0)
 
   const currentInterests = parseInterests(profile?.interests)
 
@@ -227,6 +228,13 @@ const ProfilePage = () => {
         return
       }
       setWorkCodeSent(true)
+      setResendCooldown(60)
+      const timer = setInterval(() => {
+        setResendCooldown(prev => {
+          if (prev <= 1) { clearInterval(timer); return 0 }
+          return prev - 1
+        })
+      }, 1000)
     } catch (err) {
       console.error('Work email send error:', err)
       setWorkVerifyError('이메일 전송에 실패했어요. 잠시 후 다시 시도해주세요.')
@@ -843,6 +851,13 @@ const ProfilePage = () => {
                 className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl disabled:bg-zinc-800 disabled:text-zinc-600 transition-all"
               >
                 {workVerifyLoading ? '인증 중...' : '인증 완료'}
+              </button>
+              <button
+                onClick={() => { setWorkCodeSent(false); setWorkVerifyCode(''); setWorkVerifyError('') }}
+                disabled={resendCooldown > 0}
+                className="w-full py-3 text-zinc-400 text-sm disabled:text-zinc-600 transition-all"
+              >
+                {resendCooldown > 0 ? `재발송 (${resendCooldown}초 후 가능)` : '다른 이메일로 재발송'}
               </button>
             </>
           )}
