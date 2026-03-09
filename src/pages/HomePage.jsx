@@ -307,9 +307,10 @@ const HomePage = () => {
                 <p className="text-zinc-600 text-xs text-center mb-4">
                   ID가 맞지 않거나 문제가 있으신가요?{' '}
                   <a
-                    href="#"
+                    href="https://n08x4.channel.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-zinc-500 underline underline-offset-2 hover:text-zinc-300 transition-colors"
-                    onClick={(e) => e.preventDefault()}
                   >
                     고객센터 문의
                   </a>
