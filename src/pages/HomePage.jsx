@@ -13,7 +13,7 @@ const KAKAO_UNLOCK_COST = 500
 
 const HomePage = () => {
   const navigate = useNavigate()
-  const { user, profile, signOut, needsModeSelect, refreshProfile } = useAuth()
+  const { user, profile, signOut, refreshProfile } = useAuth()
 
   const [currentMatch, setCurrentMatch] = useState(null)
   const [matchedUser, setMatchedUser] = useState(null)
@@ -28,13 +28,8 @@ const HomePage = () => {
   const [unlockLoading, setUnlockLoading] = useState(false)
   const [insufficientOpen, setInsufficientOpen] = useState(false)
 
-  // 모드 미선택 시 /mode-select로 리다이렉트
   useEffect(() => {
-    if (needsModeSelect) navigate('/mode-select')
-  }, [needsModeSelect])
-
-  useEffect(() => {
-    if (user && profile && !needsModeSelect) {
+    if (user && profile) {
       fetchData()
     }
   }, [user, profile?.id])
