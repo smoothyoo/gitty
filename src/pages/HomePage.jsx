@@ -647,7 +647,26 @@ const HomePage = () => {
         )}
 
         {/* 소개팅 탭 */}
-        {activeTab === 'dating' && renderMatchCard(currentMatch, matchedUser, 'dating')}
+        {activeTab === 'dating' && (
+          profile?.mode_dating
+            ? renderMatchCard(currentMatch, matchedUser, 'dating')
+            : (
+              <div className="bg-zinc-800 rounded-3xl p-8 text-center">
+                <span className="text-5xl mb-4 block">💘</span>
+                <h2 className="text-xl font-bold text-white mb-2">소개팅 해보실래요?</h2>
+                <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                  매주 월요일, 딱 맞는 분을 소개해드려요.<br />
+                  자기소개를 적고 소개팅 매칭을 활성화해보세요!
+                </p>
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all"
+                >
+                  소개팅 활성화하기
+                </button>
+              </div>
+            )
+        )}
 
         {/* 미팅 탭 */}
         {activeTab === 'meeting' && (
