@@ -764,8 +764,8 @@ const SignupPage = () => {
               <div className="border-t border-zinc-800 my-4" />
               {[
                 { key: 'age', label: '(필수) 만 18세 이상입니다' },
-                { key: 'terms', label: '(필수) 서비스 이용약관 동의' },
-                { key: 'privacy', label: '(필수) 개인정보 수집 및 이용 동의' },
+                { key: 'terms', label: '(필수) 서비스 이용약관 동의', link: '#' },
+                { key: 'privacy', label: '(필수) 개인정보 수집 및 이용 동의', link: '#' },
                 { key: 'marketing', label: '(선택) 마케팅 정보 수신 동의' },
               ].map((item) => (
                 <button
@@ -773,14 +773,25 @@ const SignupPage = () => {
                   onClick={() => handleAgreementChange(item.key)}
                   className="w-full p-4 rounded-xl flex items-center gap-3 hover:bg-zinc-800 transition-all"
                 >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${agreements[item.key] ? 'bg-orange-500' : 'bg-zinc-700'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${agreements[item.key] ? 'bg-orange-500' : 'bg-zinc-700'}`}>
                     <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className={`text-sm ${agreements[item.key] ? 'text-white' : 'text-zinc-500'}`}>
+                  <span className={`text-sm flex-1 text-left ${agreements[item.key] ? 'text-white' : 'text-zinc-500'}`}>
                     {item.label}
                   </span>
+                  {item.link && (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-zinc-500 text-xs underline hover:text-zinc-300 shrink-0 transition-colors"
+                    >
+                      보기
+                    </a>
+                  )}
                 </button>
               ))}
             </div>
