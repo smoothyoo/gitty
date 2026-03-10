@@ -129,7 +129,7 @@ const ModeSelectPage = () => {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-orange-500/15 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-orange-500/20 transition-all">
-                    💑
+                    💘
                   </div>
                   <div>
                     <p className="text-white font-bold text-lg">1:1 소개팅</p>
@@ -176,7 +176,7 @@ const ModeSelectPage = () => {
           <div className="space-y-6">
             <div>
               <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1 mb-3">
-                <span className="text-orange-400 text-xs font-medium">💑 소개팅 자기소개</span>
+                <span className="text-orange-400 text-xs font-medium">💘 소개팅 자기소개</span>
               </div>
               <h1 className="text-2xl font-bold text-white mb-2">1:1 소개팅 자기소개</h1>
               <p className="text-zinc-500 text-sm">매칭 상대에게 보여질 자기소개예요</p>
