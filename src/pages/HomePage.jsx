@@ -538,7 +538,11 @@ const HomePage = () => {
               match.response_deadline && new Date() >= new Date(match.response_deadline) ? (
                 <div className="text-center py-4">
                   <p className="text-zinc-500 text-sm">응답 마감 시간이 지났어요</p>
-                  <p className="text-zinc-600 text-xs mt-1">결과는 곧 공개됩니다</p>
+                  <p className="text-zinc-600 text-xs mt-1">
+                    {match.result_date
+                      ? `오늘 ${new Date(match.result_date).getHours()}시에 결과가 공개돼요 !`
+                      : '결과는 곧 공개됩니다'}
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
