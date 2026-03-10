@@ -225,8 +225,9 @@ const SignupPage = () => {
         })
       if (profileError) throw profileError
 
+      setCreatedUserId(authData.user.id)
       await refreshProfile(authData.user.id)
-      navigate('/home')
+      setStep(STEPS.WORK_VERIFY)
     } catch (err) {
       console.error('Signup error:', err)
       if (err.message?.includes('already registered')) {
