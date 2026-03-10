@@ -373,7 +373,7 @@ const ProfilePage = () => {
               <div className="py-3 border-b border-zinc-700">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-zinc-400 flex items-center gap-1.5">
-                    <span>💑</span> 소개팅 자기소개
+                    <span>💘</span> 소개팅 자기소개
                   </span>
                   <button onClick={() => openEditModal('bioDating')} className="text-orange-500 text-sm hover:text-orange-400 transition-colors">수정</button>
                 </div>
@@ -429,7 +429,7 @@ const ProfilePage = () => {
           </div>
           <div className="divide-y divide-zinc-700">
             {[
-              { field: 'mode_dating', emoji: '💑', label: '1:1 소개팅', desc: '한 명과 집중적으로 연결돼요' },
+              { field: 'mode_dating', emoji: '💘', label: '1:1 소개팅', desc: '한 명과 집중적으로 연결돼요' },
               { field: 'mode_meeting', emoji: '🎉', label: '미팅', desc: '여럿이서 함께 만나요' },
             ].map(({ field, emoji, label, desc }) => (
               <div key={field} className="flex items-center justify-between px-4 py-3">
@@ -696,7 +696,7 @@ const ProfilePage = () => {
       </BottomSheet>
 
       {/* 수정 모달 - 소개팅 자기소개 */}
-      <BottomSheet isOpen={editModal === 'bioDating'} onClose={closeEditModal} title="💑 소개팅 자기소개 수정" maxHeight>
+      <BottomSheet isOpen={editModal === 'bioDating'} onClose={closeEditModal} title="💘 소개팅 자기소개 수정" maxHeight>
         <p className="text-xs text-zinc-500 mb-2">💡 자기소개에 쓰면 좋은 주제</p>
         <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
           {BIO_GUIDES.map((guide) => (

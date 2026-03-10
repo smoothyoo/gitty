@@ -552,7 +552,7 @@ const HomePage = () => {
       <div className="max-w-lg mx-auto px-6 pt-4">
         <div className="flex gap-2 bg-zinc-800 p-1 rounded-xl">
           {[
-            { key: 'dating', label: '💑 소개팅' },
+            { key: 'dating', label: '💘 소개팅' },
             { key: 'meeting', label: '🎉 미팅' },
           ].map(({ key, label }) => (
             <button
