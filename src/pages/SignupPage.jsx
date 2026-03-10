@@ -7,8 +7,9 @@ import {
   WORK_TYPES, MBTI_TYPES,
   SMOKING_OPTIONS, DRINKING_OPTIONS, INTEREST_OPTIONS,
   REGIONS, PERSONAL_EMAIL_DOMAINS,
-  DUMMY_SMS_CODE, SHOW_TEST_HINTS, WORK_VERIFICATION_FORM_URL,
+  WORK_VERIFICATION_FORM_URL,
   AVATAR_EMOJIS,
+  DUMMY_SMS_CODE, SHOW_TEST_HINTS,
 } from '../lib/constants'
 
 const STEPS = {
@@ -92,6 +93,7 @@ const SignupPage = () => {
   const [workVerifyError, setWorkVerifyError] = useState('')
   const [workVerifyLoading, setWorkVerifyLoading] = useState(false)
   const [createdUserId, setCreatedUserId] = useState(null)
+  const [resendCooldown, setResendCooldown] = useState(0)
 
   // 프로그레스 바 (WORK_VERIFY 제외한 7단계 기준)
   const totalSteps = 7
@@ -244,7 +246,7 @@ const SignupPage = () => {
     return !domain || PERSONAL_EMAIL_DOMAINS.includes(domain)
   }
 
-  const handleWorkEmailSend = () => {
+  const handleWorkEmailSend = async () => {
     setWorkVerifyError('')
     if (!workEmail.includes('@')) {
       setWorkVerifyError('올바른 이메일 주소를 입력해주세요')
@@ -255,33 +257,43 @@ const SignupPage = () => {
       return
     }
     setWorkVerifyLoading(true)
-    setTimeout(() => {
-      setWorkVerifyLoading(false)
+    try {
+      const { data, error } = await supabase.functions.invoke('send-work-verification', {
+        body: { email: workEmail, userId: createdUserId },
+      })
+      if (error || data?.error) {
+        setWorkVerifyError(data?.error || '이메일 전송에 실패했어요. 다시 시도해주세요.')
+        return
+      }
       setWorkCodeSent(true)
-    }, 1000)
+      setResendCooldown(60)
+      const timer = setInterval(() => {
+        setResendCooldown(prev => {
+          if (prev <= 1) { clearInterval(timer); return 0 }
+          return prev - 1
+        })
+      }, 1000)
+    } catch (err) {
+      console.error('Work email send error:', err)
+      setWorkVerifyError('이메일 전송 중 오류가 발생했습니다')
+    } finally {
+      setWorkVerifyLoading(false)
+    }
   }
 
   const handleWorkVerifyCode = async () => {
     setWorkVerifyError('')
-    if (workVerifyCode !== DUMMY_SMS_CODE) {
-      setWorkVerifyError('인증코드가 일치하지 않습니다')
-      return
-    }
     setWorkVerifyLoading(true)
     try {
-      const domain = workEmail.split('@')[1]
-      const company = domain.split('.')[0]
-      const userId = createdUserId
-      if (userId) {
-        await supabase.from('users').update({
-          work_verified: true,
-          work_email: workEmail,
-          work_company: company,
-          verified_at: new Date().toISOString(),
-        }).eq('id', userId)
+      const { data, error } = await supabase.functions.invoke('verify-work-code', {
+        body: { userId: createdUserId, email: workEmail, code: workVerifyCode },
+      })
+      if (error || data?.error) {
+        setWorkVerifyError(data?.error || '인증코드가 일치하지 않습니다')
+        return
       }
       setWorkVerified(true)
-      await refreshProfile(userId)
+      await refreshProfile(createdUserId)
       setTimeout(() => navigate('/home'), 1500)
     } catch (err) {
       console.error('Work verify error:', err)
@@ -851,21 +863,25 @@ const SignupPage = () => {
                           type="text"
                           value={workVerifyCode}
                           onChange={(e) => setWorkVerifyCode(e.target.value.replace(/[^0-9]/g, ''))}
-                          placeholder="1234"
+                          placeholder="123456"
                           className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-lg text-center tracking-[1em] placeholder:tracking-normal placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                          maxLength={4}
+                          maxLength={6}
                         />
-                        {SHOW_TEST_HINTS && (
-                          <p className="text-orange-400 text-xs mt-2 text-center">테스트용 인증코드: {DUMMY_SMS_CODE}</p>
-                        )}
                       </div>
                       {workVerifyError && <p className="text-red-500 text-sm">{workVerifyError}</p>}
                       <button
                         onClick={handleWorkVerifyCode}
-                        disabled={workVerifyCode.length < 4 || workVerifyLoading}
+                        disabled={workVerifyCode.length < 6 || workVerifyLoading}
                         className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 disabled:cursor-not-allowed"
                       >
                         {workVerifyLoading ? '인증 중...' : '인증 완료'}
+                      </button>
+                      <button
+                        onClick={() => { setWorkCodeSent(false); setWorkVerifyCode(''); setWorkVerifyError('') }}
+                        disabled={resendCooldown > 0}
+                        className="w-full py-3 text-zinc-400 text-sm disabled:text-zinc-600 transition-all"
+                      >
+                        {resendCooldown > 0 ? `재발송 (${resendCooldown}초 후 가능)` : '다른 이메일로 재발송'}
                       </button>
                     </>
                   )}
