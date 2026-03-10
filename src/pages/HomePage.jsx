@@ -90,6 +90,10 @@ const HomePage = () => {
 
   const handleResponse = async (response, match, setMatch) => {
     if (!match) return
+    // 마감 후 응답 제출 방지
+    if (match.response_deadline && new Date() > new Date(match.response_deadline)) {
+      return
+    }
     try {
       const responseField = match.user_a === user.id ? 'response_a' : 'response_b'
       const otherResponseField = match.user_a === user.id ? 'response_b' : 'response_a'
@@ -394,6 +398,39 @@ const HomePage = () => {
       )
     }
 
+    // 시간 초과 (result_date 이후에도 status가 'waiting'인 경우)
+    if (status === 'waiting' && resultReady) {
+      const bothNoResponse = myResponse === null && theirResponse === null
+      const iResponded = myResponse !== null && theirResponse === null
+      const theyResponded = myResponse === null && theirResponse !== null
+
+      const timeoutTitle = bothNoResponse
+        ? '매칭이 성사되지 않았어요'
+        : iResponded
+        ? '상대방이 응답하지 않았어요'
+        : theyResponded
+        ? '시간 내에 응답하지 못했어요'
+        : '매칭이 성사되지 않았어요'
+
+      const timeoutDesc = bothNoResponse
+        ? '시간 내에 응답이 이루어지지 않았어요'
+        : iResponded
+        ? '괜찮아요! 더 좋은 인연이 기다리고 있어요'
+        : theyResponded
+        ? '다음에는 꼭 시간 내에 응답해주세요!'
+        : '시간 내에 응답이 이루어지지 않았어요'
+
+      return (
+        <div className="bg-zinc-800 rounded-3xl p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 bg-zinc-700 rounded-full flex items-center justify-center">
+            <span className="text-4xl">😢</span>
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">{timeoutTitle}</h2>
+          <p className="text-zinc-400 text-sm">{timeoutDesc}<br />다음 주 월요일에 새로운 분을 소개해드릴게요</p>
+        </div>
+      )
+    }
+
     // 상대 없음
     if (status === 'no_match') {
       return (
@@ -498,25 +535,32 @@ const HomePage = () => {
 
           <div className="mt-6">
             {myResponse === null ? (
-              <div className="space-y-3">
-                <p className="text-center text-zinc-500 text-sm mb-3">
-                  {isDating ? '둘 중 하나를 선택해야 다음 매칭이 활성화됩니다!' : '미팅 의사를 알려주세요!'}
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => handleResponse(false, match, setMatch)}
-                    className="py-4 px-6 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 font-semibold rounded-xl transition-all"
-                  >
-                    {isDating ? '매칭 안할래요' : '미팅 안할래요'}
-                  </button>
-                  <button
-                    onClick={() => handleResponse(true, match, setMatch)}
-                    className="py-4 px-6 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all"
-                  >
-                    {isDating ? '매칭할래요!' : '미팅할래요!'}
-                  </button>
+              match.response_deadline && new Date() >= new Date(match.response_deadline) ? (
+                <div className="text-center py-4">
+                  <p className="text-zinc-500 text-sm">응답 마감 시간이 지났어요</p>
+                  <p className="text-zinc-600 text-xs mt-1">결과는 곧 공개됩니다</p>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-center text-zinc-500 text-sm mb-3">
+                    {isDating ? '둘 중 하나를 선택해야 다음 매칭이 활성화됩니다!' : '미팅 의사를 알려주세요!'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => handleResponse(false, match, setMatch)}
+                      className="py-4 px-6 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 font-semibold rounded-xl transition-all"
+                    >
+                      {isDating ? '매칭 안할래요' : '미팅 안할래요'}
+                    </button>
+                    <button
+                      onClick={() => handleResponse(true, match, setMatch)}
+                      className="py-4 px-6 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition-all"
+                    >
+                      {isDating ? '매칭할래요!' : '미팅할래요!'}
+                    </button>
+                  </div>
+                </div>
+              )
             ) : null}
           </div>
         </div>
