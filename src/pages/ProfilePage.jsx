@@ -30,6 +30,14 @@ const BIO_GUIDES = [
   { label: '인생 영화/음악', icon: '🎬', placeholder: '인생 영화는 인터스텔라예요. 음악은 재즈나 인디음악을 자주 들어요. 같이 공연 보러 가는 걸 좋아해요.' },
 ]
 
+const BIO_MEETING_GUIDES = [
+  { label: '희망 인원', icon: '👥', placeholder: '2:2나 3:3 미팅을 선호해요! 소규모로 편하게 얘기 나눌 수 있는 분위기가 좋아요.' },
+  { label: '성격/분위기', icon: '✨', placeholder: '저는 처음엔 조용하지만 친해지면 많이 웃고 떠들어요. 편하고 웃긴 분위기의 미팅이 좋아요!' },
+  { label: '취미/관심사', icon: '🎯', placeholder: '요즘 클라이밍이랑 보드게임에 빠져있어요. 같이 재미있게 놀 수 있는 분들 환영해요!' },
+  { label: '선호 장소', icon: '📍', placeholder: '강남/홍대 쪽을 자주 다녀요. 분위기 좋은 바나 이자카야 좋아해요.' },
+  { label: '한마디', icon: '💬', placeholder: '부담 없이 즐겁게 노는 자리를 원해요. 잘 부탁드립니다 😊' },
+]
+
 const ProfilePage = () => {
   const navigate = useNavigate()
   const { profile, signOut, refreshProfile, user } = useAuth()
@@ -728,9 +736,15 @@ const ProfilePage = () => {
 
       {/* 수정 모달 - 미팅 자기소개 */}
       <BottomSheet isOpen={editModal === 'bioMeeting'} onClose={closeEditModal} title="🎉 미팅 자기소개 수정" maxHeight>
-        <p className="text-xs text-zinc-500 mb-2">💡 자기소개에 쓰면 좋은 주제</p>
+        <div className="bg-zinc-800/60 rounded-xl px-4 py-3 mb-3">
+          <p className="text-zinc-300 text-xs leading-relaxed">
+            💡 2:2, 3:3, 4:4 등 원하시는 미팅 인원을 자유롭게 적어주세요!<br />
+            매칭 후 상대방과 함께 인원을 맞춰가게 돼요.
+          </p>
+        </div>
+        <p className="text-xs text-zinc-500 mb-2">✍️ 자기소개에 쓰면 좋은 주제</p>
         <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar">
-          {BIO_GUIDES.map((guide) => (
+          {BIO_MEETING_GUIDES.map((guide) => (
             <button
               key={guide.label}
               type="button"
