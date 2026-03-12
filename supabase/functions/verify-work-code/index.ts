@@ -28,25 +28,52 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 인증코드 조회 (유저 + 이메일 + 코드 + 미인증 + 미만료)
-    const { data: verification, error: fetchError } = await supabase
+    // 최신 미인증 코드 조회 (attempts 포함)
+    const { data: latestCode } = await supabase
       .from('work_verification_codes')
       .select('*')
       .eq('user_id', userId)
       .eq('email', email)
-      .eq('code', code)
       .eq('verified', false)
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
 
-    if (fetchError || !verification) {
+    if (!latestCode) {
       return new Response(
-        JSON.stringify({ error: '인증코드가 일치하지 않거나 만료되었습니다' }),
+        JSON.stringify({ error: '인증코드가 만료되었습니다. 새 코드를 요청해주세요.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+
+    // Rate limiting: 5회 이상 실패 시 코드 무효화
+    const attempts = latestCode.attempts ?? 0
+    if (attempts >= 5) {
+      await supabase
+        .from('work_verification_codes')
+        .update({ verified: true }) // 재사용 불가 처리
+        .eq('id', latestCode.id)
+      return new Response(
+        JSON.stringify({ error: '너무 많이 시도했어요. 새 코드를 요청해주세요.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 코드 불일치 시 attempts 증가
+    if (latestCode.code !== code) {
+      await supabase
+        .from('work_verification_codes')
+        .update({ attempts: attempts + 1 })
+        .eq('id', latestCode.id)
+      const remaining = 4 - attempts
+      return new Response(
+        JSON.stringify({ error: `인증코드가 일치하지 않습니다. (${remaining > 0 ? remaining + '회 남음' : '마지막 기회'})` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const verification = latestCode
 
     // 1. 인증코드 verified 처리
     await supabase

@@ -119,6 +119,18 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Secret 헤더 검증 (무단 호출 방지)
+  const matchSecret = Deno.env.get('MATCH_SECRET')
+  if (matchSecret) {
+    const reqSecret = req.headers.get('x-match-secret')
+    if (reqSecret !== matchSecret) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+  }
+
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -336,9 +348,10 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('매칭 오류:', error)
+    console.error('매칭 오류:', JSON.stringify(error))
+    const errorMsg = error instanceof Error ? error.message : JSON.stringify(error)
     return new Response(
-      JSON.stringify({ error: String(error) }),
+      JSON.stringify({ error: errorMsg }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
