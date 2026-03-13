@@ -150,7 +150,7 @@ const HomePage = () => {
     setUnlockConfirmOpen(true)
   }
 
-  // 실제 열람 처리 (DB 업데이트)
+  // 실제 열람 처리 (원자적 RPC 호출)
   const confirmUnlock = async (match, setMatch) => {
     const targetMatch = match || unlockTarget?.match
     const targetSetMatch = setMatch || unlockTarget?.setMatch
@@ -161,32 +161,26 @@ const HomePage = () => {
       const isUserA = targetMatch.user_a === user.id
       const unlockField = isUserA ? 'kakao_unlocked_a' : 'kakao_unlocked_b'
 
-      // 1. matches 열람 플래그 업데이트 (남성 결제 시 양쪽 모두 공개)
-      const { error: matchError } = await supabase
-        .from('matches')
-        .update({ kakao_unlocked_a: true, kakao_unlocked_b: true })
-        .eq('id', targetMatch.id)
-      if (matchError) throw matchError
-
-      // 2. 포인트 차감
-      const newPoints = (profile?.points ?? 0) - KAKAO_UNLOCK_COST
-      const { error: pointError } = await supabase
-        .from('users')
-        .update({ points: newPoints })
-        .eq('id', user.id)
-      if (pointError) throw pointError
-
-      // 3. 거래 내역 기록
-      await supabase.from('point_transactions').insert({
-        user_id: user.id,
-        type: 'use',
-        amount: -KAKAO_UNLOCK_COST,
-        description: '카카오 ID 열람',
+      // 원자적 처리: 포인트 차감 + 거래 기록 + 매칭 열람 (DB 함수)
+      const { data, error } = await supabase.rpc('unlock_kakao', {
+        p_user_id: user.id,
+        p_match_id: targetMatch.id,
+        p_cost: KAKAO_UNLOCK_COST,
       })
+
+      if (error) throw error
+      if (!data?.success) {
+        if (data?.error === 'insufficient_points') {
+          setUnlockConfirmOpen(false)
+          setInsufficientOpen(true)
+          return
+        }
+        throw new Error(data?.error || '열람 처리 실패')
+      }
 
       await refreshProfile()
 
-      // 4. 로컬 상태 업데이트
+      // 로컬 상태 업데이트
       targetSetMatch(prev => ({ ...prev, [unlockField]: true }))
       setUnlockConfirmOpen(false)
       setUnlockTarget(null)

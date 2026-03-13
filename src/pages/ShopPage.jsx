@@ -65,28 +65,19 @@ const ShopPage = () => {
     setLoading(true)
 
     try {
-      // 1. users.points 증가
-      const newPoints = (profile?.points ?? 0) + selectedPackage.points
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ points: newPoints })
-        .eq('id', user.id)
+      // 원자적 처리: 포인트 증가 + 거래 기록 (DB 함수)
+      const { data, error } = await supabase.rpc('purchase_points', {
+        p_user_id: user.id,
+        p_amount: selectedPackage.points,
+        p_description: `${selectedPackage.points}P 충전 (${selectedPackage.priceLabel})`,
+      })
 
-      if (updateError) throw updateError
+      if (error) throw error
+      if (!data?.success) {
+        throw new Error(data?.error || '충전 처리 실패')
+      }
 
-      // 2. 거래 내역 기록
-      const { error: txError } = await supabase
-        .from('point_transactions')
-        .insert({
-          user_id: user.id,
-          type: 'purchase',
-          amount: selectedPackage.points,
-          description: `${selectedPackage.points}P 충전 (${selectedPackage.priceLabel})`,
-        })
-
-      if (txError) throw txError
-
-      // 3. 프로필 갱신 + 거래 내역 리로드
+      // 프로필 갱신 + 거래 내역 리로드
       await refreshProfile()
       await fetchTransactions()
 
